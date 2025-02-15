@@ -27,34 +27,11 @@ typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf
 #define ISSI_PINS_USED 5
 #define ISSI_LED_COUNT 16
 
-struct issi_coords{
-    uint8_t x[ISSI_LED_COUNT];
-    uint8_t y[ISSI_LED_COUNT];
-};
-
-typedef struct issi_led{
-    int state_index;
-    int blink_index;
-    int pwm_index;
-}issi_led;
-
-typedef struct issi_group{
-    uint16_t state_idx[ISSI_LED_COUNT];
-    uint16_t blink_idx[ISSI_LED_COUNT];
-    uint16_t pwm_idx[ISSI_LED_COUNT];
-}issi_group;
-
-typedef struct issi_matrix{
-    uint8_t start;
-    uint8_t width;
-    uint8_t height;
-}issi_matrix;
-
 typedef struct issi_ctx{
     uint8_t current_page; // Current page
     issi_write_single_func write_single;
     issi_write_buf_func write_buf;
-    struct issi_coords region;
+    // struct issi_coords region;
     uint8_t buffer[ISSI_FRAMES * ISSI_BYTES_PER_FRAME + ISSI_FUNCTIONS];
 }issi_ctx;
 
