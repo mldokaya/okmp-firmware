@@ -18,32 +18,17 @@ void issi_update_leds(struct issi_ctx *issi, uint8_t frame, uint8_t reg, uint8_t
 
 void issi_update_function(struct issi_ctx *issi, enum issi_func func, uint8_t len);
 
-void issi_set_led_group(issi_ctx *issi, uint8_t frame, issi_group *group, bool *led, bool update);
-
-void issi_set_led_matrix(issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool *led, bool update);
-void issi_set_led_matrix_all(issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool led, bool update);
-
-void issi_set_blink_matrix(issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool *blink, bool update);
-void issi_set_blink_matrix_all(issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool blink, bool update);
-
-void issi_set_pwm_matrix(issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t *pwm, bool update);
-void issi_set_pwm_matrix_all(issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t pwm, bool update);
-
 void issi_set_led(struct issi_ctx *issi, uint8_t frame, uint8_t x, uint8_t y, bool state, bool update);
 void issi_set_led_region(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool *state, bool update);
-void issi_set_led_all(struct issi_ctx *issi, uint8_t frame, bool state, bool update);
+void issi_set_led_all(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool state, bool update);
 
 void issi_set_blink(struct issi_ctx *issi, uint8_t frame, uint8_t x, uint8_t y, bool state, bool update);
 void issi_set_blink_region(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool *state, bool update);
-void issi_set_blink_all(struct issi_ctx *issi, uint8_t frame, bool state, uint8_t n_leds, bool update);
+void issi_set_blink_all(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool state, bool update);
 
 void issi_set_pwm(struct issi_ctx *issi, uint8_t frame, uint8_t x, uint8_t y, uint8_t val, bool update);
 void issi_set_pwm_region(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t *state, bool update);
-void issi_set_pwm_all(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t val, uint8_t n_leds, bool update);
-
-// void issi_set_region(struct issi_ctx *issi, uint8_t frame, enum issi_frame_reg reg, )
-
-
+void issi_set_pwm_all(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t state, bool update);
 
 void issi_set_function(struct issi_ctx *issi, enum issi_func func, uint8_t val, bool update);
 

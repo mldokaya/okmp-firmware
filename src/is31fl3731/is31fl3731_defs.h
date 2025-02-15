@@ -4,8 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "printf.h"
-// typedef int (*issi_write_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf, uint8_t byte, uint8_t n_bytes);
-typedef int (*issi_write_func)(uint8_t reg, uint8_t *buf, uint8_t n_bytes);
+
 typedef int (*issi_write_buf_func)(uint8_t reg, uint8_t *buf, uint8_t n_bytes);
 typedef int (*issi_write_single_func)(uint8_t reg, uint8_t byte);
 typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf);
@@ -40,8 +39,9 @@ typedef struct issi_led{
 }issi_led;
 
 typedef struct issi_group{
-    uint8_t indices[ISSI_LED_COUNT];
-    uint8_t bitmasks[ISSI_LED_COUNT];
+    uint16_t state_idx[ISSI_LED_COUNT];
+    uint16_t blink_idx[ISSI_LED_COUNT];
+    uint16_t pwm_idx[ISSI_LED_COUNT];
 }issi_group;
 
 typedef struct issi_matrix{
@@ -57,6 +57,7 @@ typedef struct issi_ctx{
     struct issi_coords region;
     uint8_t buffer[ISSI_FRAMES * ISSI_BYTES_PER_FRAME + ISSI_FUNCTIONS];
 }issi_ctx;
+
 // Command register address
 #define ISSI_CMD 0xFDu
 
