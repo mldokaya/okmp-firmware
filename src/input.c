@@ -262,7 +262,7 @@ static encoder_status update_encoder(rotary_encoder *encoder){
     return status;
 }
 
-// int input_update_mode(encoder_mode *mode, uint8_t val){
+// int input_update_mode(omp_mode *mode, uint8_t val){
 //     switch(*mode){
 //         case MODE_LED_DISPLAY:
 //             break;

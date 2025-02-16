@@ -31,7 +31,7 @@ typedef enum encoder_status{
 }encoder_status;
 
 typedef struct encoder_state{
-    encoder_mode mode;
+    omp_mode mode;
 }encoder_state;
 
 typedef enum encoder_dir{
@@ -68,7 +68,7 @@ typedef struct rotary_encoder{
     uint8_t sw_state;
     int sw_count;
     bool sw_pressed;
-    encoder_mode mode;
+    omp_mode mode;
     GPIO_TypeDef *port_AB;
     GPIO_TypeDef *port_SW;
     unsigned long pin_A;
@@ -81,6 +81,6 @@ void task_input_update(void *argument);
 void input_usb_update(Key *keys, key_report *report);
 int input_update_keys(Key *keys);
 int input_update_encoder(rotary_encoder *re);
-int input_update_mode(encoder_mode *mode, uint8_t val);
+int input_update_mode(omp_mode *mode, uint8_t val);
 
 #endif
