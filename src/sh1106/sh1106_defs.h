@@ -18,6 +18,7 @@ typedef struct sh1106_ctx sh1106_ctx;
 typedef void (*sh1106_init_func)(sh1106_pin *);
 typedef void (*sh1106_io_func)(sh1106_pin *, bool);
 typedef void (*sh1106_write_func)(sh1106_ctx *, uint8_t *, const uint8_t);
+typedef void (*sh1106_delay_func)(uint32_t);
 
 
 typedef struct sh1106_ctx{
@@ -26,9 +27,9 @@ typedef struct sh1106_ctx{
     sh1106_pin a0;
     sh1106_pin cs;
     sh1106_pin rst;
-    sh1106_init_func init;
     sh1106_io_func set;
     sh1106_write_func write;
+    sh1106_delay_func delay;
 }sh1106_ctx;
 
 #define SH1106_COLUMN_LOW_OFFSET 0x00

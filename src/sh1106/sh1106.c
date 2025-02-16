@@ -3,22 +3,18 @@
 
 void sh1106_init(sh1106_ctx *ctx){
     ctx->set(&ctx->rst, false);
-    // osDelay(100);
+    ctx->delay(1);
     ctx->set(&ctx->rst, true);
 }
 
 void sh1106_send_data(struct sh1106_ctx *ctx, uint8_t *data, uint8_t n_bytes){
-    // ctx->set(&ctx->cs, false);
     ctx->set(&ctx->a0, true);
     ctx->write((void *)ctx, data, n_bytes);
-    // ctx->set(&ctx->cs, true);
 }
 
 void sh1106_send_cmd(struct sh1106_ctx *ctx, uint8_t cmd){
-    // ctx->set(&ctx->cs, false);
     ctx->set(&ctx->a0, false);
     ctx->write(ctx, &cmd, 1);
-    // ctx->set(&ctx->cs, true);
 }
 
 void sh1106_send_cmd_list(struct sh1106_ctx *ctx, uint8_t *cmds, uint8_t n_cmds){

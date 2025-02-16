@@ -109,7 +109,7 @@ static uint8_t init_cmds[] = {
 
 void send_cmd(uint8_t cmd);
 void send_data(uint8_t *data, uint8_t len);
-void sh1106_rst(sh1106_pin *rst);
+void sh1106_delay(uint32_t delay);
 void sh1106_set(sh1106_pin *pin, bool state);
 void sh1106_write(sh1106_ctx *ctx, uint8_t *data, const uint8_t n_bytes);
 static void update_state(uint8_t *buffer, display_event *current, display_event *prev);
@@ -121,17 +121,14 @@ void display_task(void *argument){
       .rst = {.pin = OLED_RES_Pin, .port = (void *)OLED_RES_GPIO_Port},
       .cs = {.pin = OLED_CS_Pin, .port = (void *)OLED_CS_GPIO_Port},
       .write = sh1106_write,
-      .init = sh1106_rst,
       .set = sh1106_set,
-      // .spi = &hspi1
+      .delay = sh1106_delay
     };
-    HAL_GPIO_WritePin(OLED_CS_GPIO_Port, OLED_CS_Pin, GPIO_PIN_RESET);
     sh1106_init(&sh1106);
     sh1106_send_cmd_list(&sh1106, init_cmds, sizeof(init_cmds));
     for(int i = 0; i < 8 * 128; i++){
         buffer[i] = 0x00;
     }
-    // gui_draw_graphic(buffer, &DISPLAY_LED, 38, 14);
     gui_draw(buffer, LED, 52, 16, 38, 14);
     sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
     display_event d_event;
@@ -140,19 +137,12 @@ void display_task(void *argument){
     while(1){
         osStatus_t status = osMessageQueueGet(*display_queue_id, (void *)&d_event, NULL, DISPLAY_TIMEOUT_MS);
         if(status == osOK){
-            // printf("DUPDATE\n");
             active = true;
-            // draw_digit(buffer, digits[d_event.val / 100], 42, 34);
-            // draw_digit(buffer, digits[(d_event.val / 10) % 10], 60, 34);
-            // draw_digit(buffer, digits[d_event.val % 10], 78, 34);
             sh1106_clear(buffer);
             update_state(buffer, &d_event, &prev);
             sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
-            // prev.mode = d_event.mode;
-            // prev.val = d_event.val;
         }
         else if(status == osErrorTimeout && active){
-            // printf("DTIMEOUT\n");
             active = false;
             sh1106_clear(buffer);
             sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
@@ -160,69 +150,53 @@ void display_task(void *argument){
     }
 }
 
-void send_cmd(uint8_t cmd){
-  // HAL_GPIO_WritePin(OLED_CS_GPIO_Port, OLED_CS_Pin, GPIO_PIN_RESET);
-  cs_low();
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET);
-  spi_transmit(&cmd, 1);
-  cs_high();
-  // HAL_SPI_Transmit(&hspi1, &cmd, 1, 100);
-  // HAL_GPIO_WritePin(OLED_CS_GPIO_Port, OLED_CS_Pin, GPIO_PIN_SET);
-}
-
-void send_data(uint8_t *data, uint8_t len){
-  // HAL_GPIO_WritePin(OLED_CS_GPIO_Port, OLED_CS_Pin, GPIO_PIN_RESET);
-  cs_low();
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
-  spi_transmit(data, len);
-  cs_high();
-  // HAL_SPI_Transmit(&hspi1, data, len, 100);
-  // HAL_GPIO_WritePin(OLED_CS_GPIO_Port, OLED_CS_Pin, GPIO_PIN_SET);
-}
-
-void sh1106_rst(sh1106_pin *rst){
-  HAL_GPIO_WritePin((GPIO_TypeDef *)rst->port, rst->pin, GPIO_PIN_RESET);
-  HAL_Delay(1);
-  HAL_GPIO_WritePin((GPIO_TypeDef *)rst->port, rst->pin, GPIO_PIN_SET);
+void sh1106_delay(uint32_t delay){
+    osDelay(delay);
 }
 
 void sh1106_set(sh1106_pin *pin, bool state){
-  HAL_GPIO_WritePin((GPIO_TypeDef *)pin->port, pin->pin, state);
+    if(state){
+        LL_GPIO_SetOutputPin(pin->port, pin->pin);
+    }
+    else{
+        LL_GPIO_ResetOutputPin(pin->port, pin->pin);
+    }
 }
 
 void sh1106_write(sh1106_ctx *ctx, uint8_t *data, const uint8_t n_bytes){
-  spi_transmit(data, n_bytes);
-  HAL_SPI_Transmit((SPI_HandleTypeDef *)(ctx->spi), data, n_bytes, 1000);
+    cs_low();
+    spi_transmit(data, n_bytes);
+    cs_high();
 }
 
 static void update_state(uint8_t *buffer, display_event *current, display_event *prev){
-  sh1106_clear(buffer);
-  switch(current->mode){
-    case MODE_LED_DISPLAY:
-      gui_draw(buffer, LED, 52, 16, 38, 14);
-      switch(current->val){
-        case LED_DISPLAY_OFF:
-          gui_draw(buffer, LED_OFF, 52, 16, 38, 34);
-          break;
-        case LED_DISPLAY_BLINK:
-          gui_draw(buffer, LED_BLINK, 52, 16, 38, 34);
-          break;
-        case LED_DISPLAY_ON:
-          gui_draw(buffer, LED_ON, 52, 16, 38, 34);
-          break;
+    sh1106_clear(buffer);
+    switch(current->mode){
+        case MODE_LED_DISPLAY:
+            gui_draw(buffer, LED, 52, 16, 38, 14);
+            switch(current->val){
+                case LED_DISPLAY_OFF:
+                    gui_draw(buffer, LED_OFF, 52, 16, 38, 34);
+                    break;
+                case LED_DISPLAY_BLINK:
+                    gui_draw(buffer, LED_BLINK, 52, 16, 38, 34);
+                    break;
+                case LED_DISPLAY_ON:
+                    gui_draw(buffer, LED_ON, 52, 16, 38, 34);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case MODE_LED_PWM:
+            gui_draw(buffer, PWM, 52, 16, 38, 14);
+            draw_digit(buffer, DISPLAY_DIGITS.bytes[current->val / 100], 42, 34);
+            draw_digit(buffer, DISPLAY_DIGITS.bytes[(current->val / 10) % 10], 60, 34);
+            draw_digit(buffer, DISPLAY_DIGITS.bytes[current->val % 10], 78, 34);
+            break;
         default:
-          break;
-      }
-      break;
-    case MODE_LED_PWM:
-      gui_draw(buffer, PWM, 52, 16, 38, 14);
-      draw_digit(buffer, DISPLAY_DIGITS.bytes[current->val / 100], 42, 34);
-      draw_digit(buffer, DISPLAY_DIGITS.bytes[(current->val / 10) % 10], 60, 34);
-      draw_digit(buffer, DISPLAY_DIGITS.bytes[current->val % 10], 78, 34);
-      break;
-    default:
-      break;
-  }
-  prev->mode = current->mode;
-  prev->val = current->val;
+            break;
+    }
+    prev->mode = current->mode;
+    prev->val = current->val;
 }

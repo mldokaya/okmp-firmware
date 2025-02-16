@@ -8,7 +8,7 @@
 #include "modes.h"
 
 typedef struct{
-    encoder_mode mode;
+    omp_mode mode;
     uint8_t val;
 }display_event;
 
