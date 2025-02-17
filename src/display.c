@@ -120,9 +120,7 @@ void display_task(void *argument){
       .a0 = {.pin = OLED_A0_Pin, .port = (void *)OLED_A0_GPIO_Port},
       .rst = {.pin = OLED_RES_Pin, .port = (void *)OLED_RES_GPIO_Port},
       .cs = {.pin = OLED_CS_Pin, .port = (void *)OLED_CS_GPIO_Port},
-      .write = sh1106_write,
-      .set = sh1106_set,
-      .delay = sh1106_delay
+      .write = sh1106_write, .set = sh1106_set, .delay = sh1106_delay
     };
     sh1106_init(&sh1106);
     sh1106_send_cmd_list(&sh1106, init_cmds, sizeof(init_cmds));
@@ -137,15 +135,19 @@ void display_task(void *argument){
     while(1){
         osStatus_t status = osMessageQueueGet(*display_queue_id, (void *)&d_event, NULL, DISPLAY_TIMEOUT_MS);
         if(status == osOK){
-            active = true;
-            sh1106_clear(buffer);
-            update_state(buffer, &d_event, &prev);
-            sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
+            if(active){
+                sh1106_clear(buffer);
+                update_state(buffer, &d_event, &prev);
+                sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
+            }
+            else{
+                sh1106_send_cmd(&sh1106, SH1106_SET_DISPLAY | 0x1);
+                active = true;
+            }
         }
         else if(status == osErrorTimeout && active){
             active = false;
-            sh1106_clear(buffer);
-            sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
+            sh1106_send_cmd(&sh1106, SH1106_SET_DISPLAY);
         }
     }
 }

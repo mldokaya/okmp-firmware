@@ -7,11 +7,6 @@
 #include "FreeRTOS.h"
 #include "modes.h"
 
-typedef struct{
-    omp_mode mode;
-    uint8_t val;
-}display_event;
-
 void display_task(void *argument);
 
 #endif

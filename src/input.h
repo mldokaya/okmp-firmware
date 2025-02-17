@@ -9,6 +9,7 @@
 #include "gpio.h"
 #include "led.h"
 #include "modes.h"
+#include "freertos.h"
 
 #define N_ROWS 4
 #define N_COLS 4

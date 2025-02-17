@@ -4,7 +4,8 @@
 typedef enum omp_mode{
     MODE_LED_DISPLAY,
     MODE_LED_PWM,
-    N_ENCODER_MODES
+    N_OMP_MODES,
+    MODE_WAKEUP // Special mode for telling the screen to turn back on, probably temporary
 }omp_mode;
 
 typedef enum encoder_action{
@@ -17,6 +18,11 @@ typedef struct encoder_event{
     encoder_action action;
     omp_mode mode;
 }encoder_event;
+
+typedef struct{
+    omp_mode mode;
+    uint8_t val;
+}display_event;
 
 typedef enum led_display_state{
     LED_DISPLAY_ON,

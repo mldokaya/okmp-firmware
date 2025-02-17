@@ -2,6 +2,8 @@
 // #include "usbd_hid.h"
 #include "tusb.h"
 
+#define TIMEOUT_MS 5000
+
 static encoder_status update_encoder(rotary_encoder *encoder);
 
 const unsigned long col_pins[N_COLS] = {COL0_Pin, COL1_Pin, COL2_Pin, COL3_Pin};
@@ -81,30 +83,28 @@ void task_input_update(void *argument){
     event.mode = 0;
     int encoder_sample = 0;
     int count = 0;
+    int timeout = 0;
+    bool active = true;
     while(1){
         if(input_update_keys(keys)){
             input_usb_update(keys, &report);
-            printf("Hi\n");
             tud_hid_report(0, &report.report, sizeof(report.report));
-            // USBD_HID_SendReport(&hUsbDeviceFS, &report.report, sizeof(report.report));
         }
         encoder_status status = update_encoder(&encoder);
         if(status & RE_SW_CHANGE && encoder.sw_pressed){
-            // printf("SW\n");
             encoder.mode++;
-            encoder.mode %= N_ENCODER_MODES;
+            encoder.mode %= N_OMP_MODES;
             event.mode = encoder.mode;
             event.action = ENCODER_SW_PRESSED;
-            if(event.mode == MODE_LED_DISPLAY){
-                // printf("DISPLAY\n");
-            }
-            else if(event.mode == MODE_LED_PWM){
-                // printf("PWM\n");
+            if(active){
+                osMessageQueuePut(*id, (void *)&event, 0, 0);
             }
             else{
-                // printf("IDK\n");
+                display_event d_event = {.mode = event.mode, .val = 0};
+                osMessageQueuePut(display_queue_id, (void *)&d_event, 0, 0);
             }
-            osMessageQueuePut(*id, (void *)&event, 0, 0);
+            active = true;
+            timeout = 0;
         }
         if(status & RE_POS_CHANGE){
             if(encoder.dir == ENCODER_DIR_CW){
@@ -115,21 +115,33 @@ void task_input_update(void *argument){
                 // printf("CCW\n");
                 event.action = ENCODER_CCW;
             }
-            osMessageQueuePut(*id, (void *)&event, 0, 0);
+            if(active){
+                osMessageQueuePut(*id, (void *)&event, 0, 0);
+            }
+            else{
+                display_event d_event = {.mode = MODE_WAKEUP, .val = 0};
+                osMessageQueuePut(display_queue_id, (void *)&d_event, 0, 0);
+            }
+            active = true;
+            timeout = 0;
         }
+        if(timeout >= TIMEOUT_MS && active){
+            active = false;
+        }
+        timeout++;
         osDelay(1);
     }
 }
 
 void input_usb_update(Key *keys, key_report *report){
     for(int i = 0; i < N_KEYS; i++){
-        if(keys[i].pressed){
-            report->bitmap[keys[i].bitmap_pos] |= keys[i].bitmap_val;
-        }
-        else{
-            report->bitmap[keys[i].bitmap_pos] &= ~(keys[i].bitmap_val);
-        }
-        // report->bitmap[keys[i].bitmap_pos] ^= (-keys[i].pressed ^ report->bitmap[keys[i].bitmap_pos]) & keys[i].bitmap_val;
+        // if(keys[i].pressed){
+        //     report->bitmap[keys[i].bitmap_pos] |= keys[i].bitmap_val;
+        // }
+        // else{
+        //     report->bitmap[keys[i].bitmap_pos] &= ~(keys[i].bitmap_val);
+        // }
+        report->bitmap[keys[i].bitmap_pos] ^= (-keys[i].pressed ^ report->bitmap[keys[i].bitmap_pos]) & keys[i].bitmap_val;
     }
 }
 
