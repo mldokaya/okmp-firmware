@@ -35,4 +35,9 @@
 #define ROW0_Pin LL_GPIO_PIN_7
 #define ROW0_GPIO_Port GPIOB
 
+struct gpio_pin{
+    void *port;
+    unsigned int pin;
+};
+
 #endif
