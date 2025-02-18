@@ -42,17 +42,17 @@ void send_data(uint8_t *data, uint8_t len){
   HAL_SPI_Transmit(&hspi1, data, len, 100);
 }
 
-void sh1106_rst(sh1106_pin *rst){
+void sh1106_rst(struct gpio_pin *rst){
   HAL_GPIO_WritePin((GPIO_TypeDef *)rst->port, rst->pin, GPIO_PIN_RESET);
   HAL_Delay(1);
   HAL_GPIO_WritePin((GPIO_TypeDef *)rst->port, rst->pin, GPIO_PIN_SET);
 }
 
-void sh1106_set(sh1106_pin *pin, bool state){
+void sh1106_set(struct gpio_pin *pin, bool state){
   HAL_GPIO_WritePin((GPIO_TypeDef *)pin->port, pin->pin, state);
 }
 
-void sh1106_write(sh1106_ctx *ctx, uint8_t *data, const uint8_t n_bytes){
+void sh1106_write(struct sh1106_dev *ctx, uint8_t *data, const uint8_t n_bytes){
   HAL_SPI_Transmit((SPI_HandleTypeDef *)(ctx->spi), data, n_bytes, 1000);
 }
 
@@ -77,7 +77,7 @@ void output_task(void *argument){
     issi_update_frame(&issi, ISSI_FRAME1);
     issi_set_page(&issi, ISSI_FUNCTION);
     issi_set_function(&issi, ISSI_FUNC_DISPLAY, ISSI_DISPLAY_IC_FRAME1 | ISSI_DISPLAY_BLINK_DISABLE | 2, true);
-    sh1106_ctx sh1106;
+    struct sh1106_dev sh1106;
     HAL_GPIO_WritePin(OLED_CS_GPIO_Port, OLED_CS_Pin, GPIO_PIN_RESET);
     sh1106.a0.pin = OLED_A0_Pin;
     sh1106.a0.port = (void *)OLED_A0_GPIO_Port;

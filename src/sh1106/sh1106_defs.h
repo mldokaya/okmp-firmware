@@ -2,35 +2,29 @@
 #define SH1106_DEFS_H
 
 #include <stdint.h>
+#include "pin_defs.h"
 
 #define SH1106_PAGES 8
 #define SH1106_WIDTH 128
 #define SH1106_HEIGHT 64
 #define SH1106_PIXELS SH1106_PAGES * SH1106_WIDTH
 
-typedef struct sh1106_pin{
-    void *port;
-    int pin;
-}sh1106_pin;
+struct sh1106_dev; // Forward declaration for function pointers
 
-typedef struct sh1106_ctx sh1106_ctx;
-
-typedef void (*sh1106_init_func)(sh1106_pin *);
-typedef void (*sh1106_io_func)(sh1106_pin *, bool);
-typedef void (*sh1106_write_func)(sh1106_ctx *, uint8_t *, const uint8_t);
+// Typedefs for MCU-specific functions the driver needs
+typedef void (*sh1106_io_func)(struct gpio_pin *, bool);
+typedef void (*sh1106_write_func)(struct sh1106_dev *, uint8_t *, const uint8_t);
 typedef void (*sh1106_delay_func)(uint32_t);
 
-
-typedef struct sh1106_ctx{
-    uint8_t buffer[SH1106_PAGES * SH1106_WIDTH];
+struct sh1106_dev{
     void *spi;
-    sh1106_pin a0;
-    sh1106_pin cs;
-    sh1106_pin rst;
+    struct gpio_pin a0; // Controls whether data goes to the display RAM (high) or command register (low)
+    struct gpio_pin cs; // Active low CS for SPI
+    struct gpio_pin rst; // Active low reset
     sh1106_io_func set;
     sh1106_write_func write;
     sh1106_delay_func delay;
-}sh1106_ctx;
+};
 
 #define SH1106_COLUMN_LOW_OFFSET 0x00
 #define SH1106_COLUMN_HIGH_OFFSET 0x10

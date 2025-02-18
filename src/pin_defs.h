@@ -1,5 +1,5 @@
 #ifndef OMP_PIN_DEFS_H
-#define OMP_PIN_DEFS
+#define OMP_PIN_DEFS_H
 
 #include "stm32f4xx_ll_gpio.h"
 
@@ -35,6 +35,8 @@
 #define ROW0_Pin LL_GPIO_PIN_7
 #define ROW0_GPIO_Port GPIOB
 
+
+// Generic struct for referencing GPIO pins
 struct gpio_pin{
     void *port;
     unsigned int pin;

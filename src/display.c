@@ -64,8 +64,6 @@ static uint8_t LED_BLINK[] = {
 //   0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0xFF, 0xFF
 // };
 
-// static uint8_t LED_STATES
-
 static gui_digits DISPLAY_DIGITS = {
   .spacing = 2,
   .bytes = {
@@ -107,16 +105,16 @@ static uint8_t init_cmds[] = {
     SH1106_SET_DISPLAY | 0x01
 };
 
-void send_cmd(uint8_t cmd);
-void send_data(uint8_t *data, uint8_t len);
-void sh1106_delay(uint32_t delay);
-void sh1106_set(sh1106_pin *pin, bool state);
-void sh1106_write(sh1106_ctx *ctx, uint8_t *data, const uint8_t n_bytes);
+static void send_cmd(uint8_t cmd);
+static void send_data(uint8_t *data, uint8_t len);
+static void sh1106_delay(uint32_t delay);
+static void sh1106_set(struct gpio_pin *pin, bool state);
+static void sh1106_write(struct sh1106_dev *ctx, uint8_t *data, const uint8_t n_bytes);
 static void update_state(uint8_t *buffer, display_event *current, display_event *prev);
 
 void display_task(void *argument){
     osMessageQueueId_t *display_queue_id = (osMessageQueueId_t *)argument;
-    sh1106_ctx sh1106 = {
+    struct sh1106_dev sh1106 = {
       .a0 = {.pin = OLED_A0_Pin, .port = (void *)OLED_A0_GPIO_Port},
       .rst = {.pin = OLED_RES_Pin, .port = (void *)OLED_RES_GPIO_Port},
       .cs = {.pin = OLED_CS_Pin, .port = (void *)OLED_CS_GPIO_Port},
@@ -152,11 +150,11 @@ void display_task(void *argument){
     }
 }
 
-void sh1106_delay(uint32_t delay){
+static void sh1106_delay(uint32_t delay){
     osDelay(delay);
 }
 
-void sh1106_set(sh1106_pin *pin, bool state){
+static void sh1106_set(struct gpio_pin *pin, bool state){
     if(state){
         LL_GPIO_SetOutputPin(pin->port, pin->pin);
     }
@@ -165,7 +163,7 @@ void sh1106_set(sh1106_pin *pin, bool state){
     }
 }
 
-void sh1106_write(sh1106_ctx *ctx, uint8_t *data, const uint8_t n_bytes){
+static void sh1106_write(struct sh1106_dev *ctx, uint8_t *data, const uint8_t n_bytes){
     cs_low();
     spi_transmit(data, n_bytes);
     cs_high();

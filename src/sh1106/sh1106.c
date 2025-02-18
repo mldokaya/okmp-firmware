@@ -1,30 +1,30 @@
 #include "sh1106.h"
 #include "FreeRTOS.h"
 
-void sh1106_init(sh1106_ctx *ctx){
+void sh1106_init(struct sh1106_dev *ctx){
     ctx->set(&ctx->rst, false);
     ctx->delay(1);
     ctx->set(&ctx->rst, true);
 }
 
-void sh1106_send_data(struct sh1106_ctx *ctx, uint8_t *data, uint8_t n_bytes){
+void sh1106_send_data(struct sh1106_dev *ctx, uint8_t *data, uint8_t n_bytes){
     ctx->set(&ctx->a0, true);
     ctx->write((void *)ctx, data, n_bytes);
 }
 
-void sh1106_send_cmd(struct sh1106_ctx *ctx, uint8_t cmd){
+void sh1106_send_cmd(struct sh1106_dev *ctx, uint8_t cmd){
     ctx->set(&ctx->a0, false);
     ctx->write(ctx, &cmd, 1);
 }
 
-void sh1106_send_cmd_list(struct sh1106_ctx *ctx, uint8_t *cmds, uint8_t n_cmds){
+void sh1106_send_cmd_list(struct sh1106_dev *ctx, uint8_t *cmds, uint8_t n_cmds){
     for(int i = 0; i < n_cmds; i++){
         // printf("sending: %02X\n", cmds[i]);
     }
     ctx->write(ctx, cmds, n_cmds);
 }
 
-void sh1106_set_col(sh1106_ctx *ctx, uint8_t line){
+void sh1106_set_col(struct sh1106_dev *ctx, uint8_t line){
     line += 2;
     sh1106_send_cmd(ctx, line & 0x0F);
     sh1106_send_cmd(ctx, (line >> 4) | 0x10);
@@ -42,7 +42,7 @@ void sh1106_fill(uint8_t *buffer){
     }
 }
 
-void sh1106_update_region(struct sh1106_ctx *ctx, uint8_t *buffer, uint8_t x, uint8_t y, uint8_t w, uint8_t h){
+void sh1106_update_region(struct sh1106_dev *ctx, uint8_t *buffer, uint8_t x, uint8_t y, uint8_t w, uint8_t h){
     int start_page = y / 8;
     int end_page = (y + h - 1) / 8;
     x += 2;
@@ -54,7 +54,7 @@ void sh1106_update_region(struct sh1106_ctx *ctx, uint8_t *buffer, uint8_t x, ui
     }
 }
 
-void sh1106_clear_region(struct sh1106_ctx *ctx, uint8_t *buffer, uint8_t x, uint8_t y, uint8_t w, uint8_t h){
+void sh1106_clear_region(struct sh1106_dev *ctx, uint8_t *buffer, uint8_t x, uint8_t y, uint8_t w, uint8_t h){
     int start_page = y / 8;
     int end_page = (y + h) / 8;
     x += 2;
