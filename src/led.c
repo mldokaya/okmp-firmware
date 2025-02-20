@@ -1,7 +1,6 @@
 #include "led.h"
 #include "printf.h"
 #include "cmsis_os2.h"
-#include "display.h"
 issi_ctx issi;
 
 int issi_write(uint8_t reg, uint8_t byte){
