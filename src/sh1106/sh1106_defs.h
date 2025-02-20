@@ -1,6 +1,7 @@
 #ifndef SH1106_DEFS_H
 #define SH1106_DEFS_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include "pin_defs.h"
 
@@ -11,7 +12,7 @@
 
 struct sh1106_dev; // Forward declaration for function pointers
 
-// Typedefs for MCU-specific functions the driver needs
+// Typedefs for platform-specific functions the driver needs
 typedef void (*sh1106_io_func)(struct gpio_pin *, bool);
 typedef void (*sh1106_write_func)(struct sh1106_dev *, uint8_t *, const uint8_t);
 typedef void (*sh1106_delay_func)(uint32_t);
@@ -21,9 +22,9 @@ struct sh1106_dev{
     struct gpio_pin a0; // Controls whether data goes to the display RAM (high) or command register (low)
     struct gpio_pin cs; // Active low CS for SPI
     struct gpio_pin rst; // Active low reset
-    sh1106_io_func set;
-    sh1106_write_func write;
-    sh1106_delay_func delay;
+    sh1106_io_func set; // platform-specific function for setting the state of GPIO pins
+    sh1106_write_func write; // platform-specific function for sending data via SPI
+    sh1106_delay_func delay; // platform-specific function for delaying (in ms)
 };
 
 #define SH1106_COLUMN_LOW_OFFSET 0x00
@@ -33,9 +34,10 @@ struct sh1106_dev{
 
 #define SH1106_SET_COLUMN_LOW 0x00
 #define SH1106_SET_COLUMN_HIGH 0x10
+#define SH1106_SET_PUMP_VOLTAGE 0x30
 
 enum sh1106_pump_voltage{
-    SH1106_PUMP_VOLTAGE_6_4 = 0x30,
+    SH1106_PUMP_VOLTAGE_6_4 = 0x00,
     SH1106_PUMP_VOLTAGE_7_4,
     SH1106_PUMP_VOLTAGE_8_0,
     SH1106_PUMP_VOLTAGE_9_0
