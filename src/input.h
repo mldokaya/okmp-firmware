@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include "printf.h"
 #include "cmsis_os2.h"
 #include "gpio.h"
@@ -23,17 +22,11 @@
 #define SW_PUSH_THRESHOLD 5
 #define ENCODER_MODES 2
 
-typedef int (*encoder_func)(uint8_t pos, uint8_t old_pos);
-
 typedef enum encoder_status{
     RE_NO_CHANGE,
     RE_SW_CHANGE,
     RE_POS_CHANGE
 }encoder_status;
-
-typedef struct encoder_state{
-    omp_mode mode;
-}encoder_state;
 
 typedef enum encoder_dir{
     ENCODER_DIR_CCW,
@@ -48,13 +41,7 @@ typedef struct key{
     int count;
 }Key;
 
-typedef struct{
-    uint8_t report[N_KEYS + 3];
-    uint8_t *modifier;
-    uint8_t *bitmap;
-}KeyReport;
-
-typedef struct{
+typedef struct key_report{
     uint8_t report[N_KEYS];
     uint8_t *modifier;
     uint8_t *bitmap;
@@ -67,7 +54,6 @@ typedef struct rotary_encoder{
     int pos;
     encoder_dir dir;
     uint8_t sw_state;
-    int sw_count;
     bool sw_pressed;
     omp_mode mode;
     GPIO_TypeDef *port_AB;
@@ -77,9 +63,9 @@ typedef struct rotary_encoder{
     unsigned long pin_SW;
 }rotary_encoder;
 
-void input_init(Key *keys, key_report *report, rotary_encoder *re, const uint8_t *keycodes);
+void input_init(Key *keys, struct key_report *report, rotary_encoder *re, const uint8_t *keycodes);
 void task_input_update(void *argument);
-void input_usb_update(Key *keys, key_report *report);
+void input_usb_update(Key *keys, struct key_report *report);
 int input_update_keys(Key *keys);
 int input_update_encoder(rotary_encoder *re);
 int input_update_mode(omp_mode *mode, uint8_t val);

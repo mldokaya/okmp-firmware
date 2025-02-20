@@ -1,5 +1,4 @@
 #include "input.h"
-// #include "usbd_hid.h"
 #include "tusb.h"
 
 #define TIMEOUT_MS 5000
@@ -23,9 +22,11 @@ const uint8_t DEFAULT_KEYCODES[N_KEYS] = {
     // 0x2C, 0x62, 0x63, 0x57
 };
 
-void input_init(Key *keys, key_report *report, rotary_encoder *re, const uint8_t *keycodes){
+void input_init(Key *keys, struct key_report *report, rotary_encoder *re, const uint8_t *keycodes){
     // Initialize the key report
-    memset(report->report, 0, sizeof(report->report));
+    for(int i = 0; i < N_KEYS; i++){
+        report->report[i] = 0;
+    }
     report->modifier = &(report->report[0]);
     report->bitmap = &(report->report[1]);
     // Initialize the key matrix
@@ -43,7 +44,6 @@ void input_init(Key *keys, key_report *report, rotary_encoder *re, const uint8_t
     re->sw_state = 0;
     re->pos = 0;
     re->raw = 0;
-    re->sw_count = 0;
     re->sw_pressed = false;
     re->port_AB = GPIOB;
     re->port_SW = GPIOA;
@@ -76,13 +76,10 @@ void task_input_update(void *argument){
     osMessageQueueId_t *id = (osMessageQueueId_t *)argument;
     rotary_encoder encoder;
     Key keys[N_KEYS];
-    key_report report;
+    struct key_report report;
     input_init(keys, &report, &encoder, NULL);
-    int sw_count = 0;
     encoder_event event;
     event.mode = 0;
-    int encoder_sample = 0;
-    int count = 0;
     int timeout = 0;
     bool active = true;
     while(1){
@@ -108,11 +105,9 @@ void task_input_update(void *argument){
         }
         if(status & RE_POS_CHANGE){
             if(encoder.dir == ENCODER_DIR_CW){
-                // printf("CW\n");
                 event.action = ENCODER_CW;
             }
             else{
-                // printf("CCW\n");
                 event.action = ENCODER_CCW;
             }
             if(active){
@@ -133,14 +128,8 @@ void task_input_update(void *argument){
     }
 }
 
-void input_usb_update(Key *keys, key_report *report){
+void input_usb_update(Key *keys, struct key_report *report){
     for(int i = 0; i < N_KEYS; i++){
-        // if(keys[i].pressed){
-        //     report->bitmap[keys[i].bitmap_pos] |= keys[i].bitmap_val;
-        // }
-        // else{
-        //     report->bitmap[keys[i].bitmap_pos] &= ~(keys[i].bitmap_val);
-        // }
         report->bitmap[keys[i].bitmap_pos] ^= (-keys[i].pressed ^ report->bitmap[keys[i].bitmap_pos]) & keys[i].bitmap_val;
     }
 }
@@ -195,26 +184,6 @@ static uint8_t is_button_released(uint8_t *history){
         *history = 0b00000000;
     }
     return released;
-}
-
-uint8_t test_for_press_only(void){
- 
-    static uint8_t button_history = 0;
-    uint8_t pressed = 0;    
- 
-    button_history = button_history << 1;
-    if((RE_SW_GPIO_Port->IDR & RE_SW_Pin) != 0){
-        printf("1\n");
-    }
-    else{
-        printf("0\n");
-    }
-    button_history |= (RE_SW_GPIO_Port->IDR & RE_SW_Pin) != 0;
-    if (button_history & 0b11000111 == 0b00000111){ 
-        pressed = 1;
-        button_history = 0b11111111;
-    }
-    return pressed;
 }
 
 static encoder_status update_encoder(rotary_encoder *encoder){
