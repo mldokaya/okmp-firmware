@@ -1,5 +1,5 @@
-#ifndef OPAD_I2C_H
-#define OPAD_I2C_H
+#ifndef OMP_I2C_H
+#define OMP_I2C_H
 
 #include "FreeRTOS.h"
 #include "task.h"

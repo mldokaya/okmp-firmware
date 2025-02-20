@@ -1,5 +1,5 @@
-#ifndef OPAD_INPUT_H
-#define OPAD_INPUT_H
+#ifndef OMP_INPUT_H
+#define OMP_INPUT_H
 
 #include <stdint.h>
 #include <stdbool.h>

@@ -1,5 +1,5 @@
-#ifndef OPAD_IS31FL3731_H
-#define OPAD_IS31FL3731_H
+#ifndef OMP_IS31FL3731_H
+#define OMP_IS31FL3731_H
 
 #include <string.h>
 #include "is31fl3731_defs.h"
