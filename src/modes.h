@@ -1,6 +1,8 @@
 #ifndef MODES_H
 #define MODES_H
 
+#include <stdint.h>
+
 typedef enum omp_mode{
     MODE_LED_DISPLAY,
     MODE_LED_PWM,
