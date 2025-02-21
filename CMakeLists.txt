@@ -14,7 +14,7 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 # Set the project name
-set(CMAKE_PROJECT_NAME omp_firmware)
+set(CMAKE_PROJECT_NAME okmp_firmware)
 
 if(CMAKE_CROSSCOMPILING)
     # Include toolchain file

@@ -1,5 +1,5 @@
-#ifndef GUI_H
-#define GUI_H
+#ifndef OKMP_GUI_H
+#define OKMP_GUI_H
 
 #include <stdint.h>
 

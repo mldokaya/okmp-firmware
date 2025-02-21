@@ -1,5 +1,5 @@
-#ifndef OMP_MAIN_H
-#define OMP_MAIN_H
+#ifndef OKMP_MAIN_H
+#define OKMP_MAIN_H
 
 // STM32 HAL/LL headers
 #include "stm32f4xx_hal.h"

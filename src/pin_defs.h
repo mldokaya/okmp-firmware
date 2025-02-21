@@ -1,5 +1,5 @@
-#ifndef OMP_PIN_DEFS_H
-#define OMP_PIN_DEFS_H
+#ifndef OKMP_PIN_DEFS_H
+#define OKMP_PIN_DEFS_H
 
 #include "stm32f4xx_ll_gpio.h"
 

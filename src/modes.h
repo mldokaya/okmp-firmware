@@ -1,12 +1,12 @@
-#ifndef MODES_H
-#define MODES_H
+#ifndef OKMP_MODES_H
+#define OKMP_MODES_H
 
 #include <stdint.h>
 
 typedef enum omp_mode{
     MODE_LED_DISPLAY,
     MODE_LED_PWM,
-    N_OMP_MODES,
+    N_OKMP_MODES,
     MODE_WAKEUP // Special mode for telling the screen to turn back on, probably temporary
 }omp_mode;
 

@@ -1,5 +1,5 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#ifndef OKMP_DISPLAY_H
+#define OKMP_DISPLAY_H
 
 #include "sh1106.h"
 #include "gui.h"

@@ -1,5 +1,5 @@
-#ifndef OMP_LED_H
-#define OMP_LED_H
+#ifndef OKMP_LED_H
+#define OKMP_LED_H
 
 #include "FreeRTOS.h"
 #include "task.h"

@@ -1,5 +1,5 @@
-#ifndef OMP_FREERTOS_H
-#define OMP_FREERTOS_H
+#ifndef OKMP_FREERTOS_H
+#define OKMP_FREERTOS_H
 
 #include "cmsis_os.h"
 #include "FreeRTOS.h"

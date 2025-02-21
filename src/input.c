@@ -90,7 +90,7 @@ void task_input_update(void *argument){
         encoder_status status = update_encoder(&encoder);
         if(status & RE_SW_CHANGE && encoder.sw_pressed){
             encoder.mode++;
-            encoder.mode %= N_OMP_MODES;
+            encoder.mode %= N_OKMP_MODES;
             event.mode = encoder.mode;
             event.action = ENCODER_SW_PRESSED;
             if(active){

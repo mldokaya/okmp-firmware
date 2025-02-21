@@ -1,5 +1,5 @@
-#ifndef OMP_INPUT_H
-#define OMP_INPUT_H
+#ifndef OKMP_INPUT_H
+#define OKMP_INPUT_H
 
 #include <stdint.h>
 #include <stdbool.h>
