@@ -1,12 +1,11 @@
 #ifndef IS31FL3731_H
 #define IS31FL3731_H
 
-#include <string.h>
 #include "is31fl3731_defs.h"
 
 void issi_init_frame(struct issi_ctx *issi, uint8_t frame, uint8_t *data);
 
-void issi_set_page(struct issi_ctx *issi, enum issi_page page);
+void issi_update_page(struct issi_ctx *issi, enum issi_page page);
 
 void issi_update_region(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t n_leds);
 

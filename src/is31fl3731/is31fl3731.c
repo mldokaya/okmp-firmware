@@ -13,7 +13,7 @@ void issi_init_frame(struct issi_ctx *issi, uint8_t frame, uint8_t *data){
     }
 }
 
-void issi_set_page(struct issi_ctx *issi, enum issi_page page){
+void issi_update_page(struct issi_ctx *issi, enum issi_page page){
     if(issi->current_page != page){
         issi->current_page = page;
         issi->write_single(ISSI_CMD, page);
@@ -109,7 +109,7 @@ void issi_set_pwm_all(struct issi_ctx *issi, uint8_t frame, uint8_t *x, uint8_t 
 }
 
 void issi_update_frame(struct issi_ctx *issi, uint8_t frame){
-    issi_set_page(issi, frame);
+    issi_update_page(issi, frame);
     issi->write_buf(ISSI_CA1, &issi->buffer[frame * ISSI_BYTES_PER_FRAME], ISSI_BYTES_PER_FRAME);
 }
 
@@ -118,7 +118,7 @@ void issi_update_leds(struct issi_ctx *issi, uint8_t frame, uint8_t reg, uint8_t
 }
 
 void issi_update_function(struct issi_ctx *issi, enum issi_func func, uint8_t len){
-    issi_set_page(issi, ISSI_FUNCTION);
+    issi_update_page(issi, ISSI_FUNCTION);
     issi->write_buf(func, &issi->buffer[ISSI_FUNC_OFFSET + func], len);
 }
 
