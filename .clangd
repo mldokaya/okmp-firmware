@@ -1,0 +1,12 @@
+If:
+    PathMatch: external/.*
+Diagnostics:
+    Suppress: '*'
+---
+Diagnostics:
+    Suppress: [-Wc23-extensions]
+    UnusedIncludes: None
+InlayHints:
+    Enabled: No
+CompileFlags:
+    Compiler: /bin/arm-none-eabi-gcc

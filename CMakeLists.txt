@@ -24,11 +24,11 @@ endif()
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-# Enable CMake support for ASM and C languages
-enable_language(C ASM)
 
 # Core project settings
 project(${CMAKE_PROJECT_NAME})
+# Enable CMake support for ASM and C languages
+enable_language(C ASM)
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
 if(CMAKE_CROSSCOMPILING)
@@ -106,3 +106,9 @@ else()
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/build/compile_commands.json
+)

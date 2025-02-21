@@ -3,6 +3,10 @@ add_library(stm32-drivers INTERFACE)
 # Enable CMake support for ASM and C languages
 enable_language(C ASM)
 
+target_compile_options(stm32-drivers INTERFACE
+    "-w"
+)
+
 target_compile_definitions(stm32-drivers INTERFACE 
 	USE_FULL_LL_DRIVER 
 	USE_HAL_DRIVER 
