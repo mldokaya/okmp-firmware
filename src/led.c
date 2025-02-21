@@ -3,11 +3,11 @@
 #include "cmsis_os2.h"
 issi_ctx issi;
 
-int issi_write(uint8_t reg, uint8_t byte){
+int issi_write(void *i2c, uint8_t reg, uint8_t byte){
     i2c_write(reg, &byte, 1);
 }
 
-int issi_write_buf(uint8_t reg, uint8_t *buf, uint8_t n_bytes){
+int issi_write_buf(void *i2c, uint8_t reg, uint8_t *buf, uint8_t n_bytes){
     i2c_write(reg, buf, n_bytes);
 }
 

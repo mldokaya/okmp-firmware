@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include "printf.h"
 
-typedef int (*issi_write_buf_func)(uint8_t reg, uint8_t *buf, uint8_t n_bytes);
-typedef int (*issi_write_single_func)(uint8_t reg, uint8_t byte);
-typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf);
+typedef int (*issi_write_buf_func)(void *i2c, uint8_t reg, uint8_t *buf, uint8_t n_bytes); // For writing n bytes to n contiguous registers
+typedef int (*issi_write_single_func)(void *i2c, uint8_t reg, uint8_t byte); // For writing to a single register
+typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf); // For reading from a register (not used yet)
 
 // These are all constants based on info from the datasheet
 #define ISSI_FRAMES 8 // Number of frames
@@ -20,6 +20,7 @@ typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf
 #define ISSI_PWM_BYTES 8 // 1 byte per LED
 #define ISSI_BYTES_PER_LOCATION (ISSI_LED_BYTES + ISSI_BLINK_BYTES + ISSI_PWM_BYTES) // Number of bytes used to control the LEDs for each location
 #define ISSI_BYTES_PER_FRAME ISSI_LED_LOCATIONS * ISSI_BYTES_PER_LOCATION // Total number of bytes per frame
+
 #define ISSI_LED_INDEX(f, x, y) f * ISSI_BYTES_PER_FRAME + ISSI_MATRICES * ISSI_LED_BYTES * y + x / 8
 #define ISSI_BLINK_INDEX(f, x, y) ISSI_LED_INDEX(f, x, y) + ISSI_BLINK_OFFSET
 #define ISSI_PWM_INDEX(f, x, y) f * ISSI_BYTES_PER_FRAME + ISSI_MATRICES * ISSI_PWM_BYTES * y + x + ISSI_PWM_OFFSET
@@ -28,10 +29,10 @@ typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf
 #define ISSI_LED_COUNT 16
 
 typedef struct issi_ctx{
+    void *i2c;
     uint8_t current_page; // Current page
     issi_write_single_func write_single;
     issi_write_buf_func write_buf;
-    // struct issi_coords region;
     uint8_t buffer[ISSI_FRAMES * ISSI_BYTES_PER_FRAME + ISSI_FUNCTIONS];
 }issi_ctx;
 
@@ -63,12 +64,6 @@ typedef struct issi_ctx{
 #define ISSI_PWM_OFFSET 0x24u
 
 #define ISSI_FUNC_OFFSET ISSI_FRAMES * ISSI_BYTES_PER_FRAME
-
-enum issi_frame_reg{
-    ISSI_FRAME_LED = 0x00,
-    ISSI_FRAME_BLINK = 0x12,
-    ISSI_FRAME_PWM = 0x24
-};
 
 // Function register addresses
 typedef enum issi_func{
@@ -104,10 +99,6 @@ typedef enum issi_mode{
     ISSI_MODE_AUTO_FRAME = 0x01 << 3,
     ISSI_MODE_AUDIO_FRAME = 0x02 << 3
 }ISSI_MODE;
-
-// typedef enum ISSI_FS{
-
-// }ISSI_FS;
 
 typedef enum issi_cns{
     ISSI_LOOP_ENDLESS = 0x00,
