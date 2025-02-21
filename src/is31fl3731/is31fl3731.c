@@ -1,12 +1,5 @@
 #include "is31fl3731.h"
 
-void issi_init(struct issi_ctx *issi, uint8_t *x, uint8_t *y){
-    for(int i = 0; i < ISSI_LED_COUNT; i++){
-        // issi->led_coords.x[i] = x[i];
-        // issi->led_coords.y[i] = y[i];
-    }
-}
-
 void issi_init_frame(struct issi_ctx *issi, uint8_t frame, uint8_t *data){
     if(data == NULL){
         for(int i = 0; i < ISSI_BYTES_PER_FRAME; i++){

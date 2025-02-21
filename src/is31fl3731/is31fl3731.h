@@ -4,8 +4,6 @@
 #include <string.h>
 #include "is31fl3731_defs.h"
 
-void issi_init(struct issi_ctx *issi, uint8_t *x, uint8_t *y);
-
 void issi_init_frame(struct issi_ctx *issi, uint8_t frame, uint8_t *data);
 
 void issi_set_page(struct issi_ctx *issi, enum issi_page page);
