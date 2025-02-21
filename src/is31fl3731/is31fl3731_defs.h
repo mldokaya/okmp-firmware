@@ -28,13 +28,14 @@ typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf
 #define ISSI_PINS_USED 5
 #define ISSI_LED_COUNT 16
 
-typedef struct issi_ctx{
+//
+typedef struct is31fl3731_dev{
     void *i2c;
     uint8_t current_page; // Current page
     issi_write_single_func write_single;
     issi_write_buf_func write_buf;
     uint8_t buffer[ISSI_FRAMES * ISSI_BYTES_PER_FRAME + ISSI_FUNCTIONS];
-}issi_ctx;
+}is31fl3731_dev;
 
 // Command register address
 #define ISSI_CMD 0xFDu

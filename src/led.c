@@ -1,7 +1,7 @@
 #include "led.h"
 #include "printf.h"
 #include "cmsis_os2.h"
-issi_ctx issi;
+is31fl3731_dev issi;
 
 int issi_write(void *i2c, uint8_t reg, uint8_t byte){
     i2c_write(reg, &byte, 1);

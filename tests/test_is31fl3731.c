@@ -1,7 +1,7 @@
 #include "unity.h"
 #include "is31fl3731.h"
 
-issi_ctx *issi;
+is31fl3731_dev *issi;
 
 void setUp(){}
 void tearDown(){}
