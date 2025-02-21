@@ -1,5 +1,5 @@
-#ifndef OKMP_IS31FL3731_H
-#define OKMP_IS31FL3731_H
+#ifndef IS31FL3731_H
+#define IS31FL3731_H
 
 #include <string.h>
 #include "is31fl3731_defs.h"

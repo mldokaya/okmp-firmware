@@ -1,5 +1,5 @@
-#ifndef OKMP_IS31FL3731_DEFS_H
-#define OKMP_IS31FL3731_DEFS_H
+#ifndef IS31FL3731_DEFS_H
+#define IS31FL3731_DEFS_H
 
 #include <stdbool.h>
 #include <stdint.h>
