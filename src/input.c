@@ -1,4 +1,5 @@
 #include "input.h"
+#include "freertos.h"
 #include "tusb.h"
 
 #define TIMEOUT_MS 5000

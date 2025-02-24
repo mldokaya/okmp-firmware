@@ -1,6 +1,7 @@
 #include "led.h"
+#include "freertos.h"
 #include "printf.h"
-#include "cmsis_os2.h"
+
 is31fl3731_dev issi;
 
 int issi_write(void *i2c, uint8_t reg, uint8_t byte){
@@ -12,8 +13,6 @@ int issi_write_buf(void *i2c, uint8_t reg, uint8_t *buf, uint8_t n_bytes){
 }
 
 void led_task(void *argument){
-    osMessageQueueId_t led_queue_id = ((osMessageQueueId_t *)argument)[0];
-    osMessageQueueId_t display_queue_id = ((osMessageQueueId_t *)argument)[1];
     encoder_event event;
     uint8_t pwm = LED_DEFAULT_PWM;
     led_display_state state = LED_DEFAULT_STATE;

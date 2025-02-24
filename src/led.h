@@ -1,10 +1,6 @@
 #ifndef OKMP_LED_H
 #define OKMP_LED_H
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "main.h"
-#include "cmsis_os2.h"
 #include <stdbool.h>
 #include "is31fl3731.h"
 #include "i2c.h"

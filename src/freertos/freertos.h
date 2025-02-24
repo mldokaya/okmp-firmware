@@ -2,10 +2,10 @@
 #define OKMP_FREERTOS_H
 
 #include "cmsis_os.h"
+#include "cmsis_os2.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "main.h"
 #include "input.h"
 #include "i2c.h"
 #include "is31fl3731.h"
