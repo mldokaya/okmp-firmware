@@ -24,7 +24,7 @@ void StartDefaultTask(void *argument){
      .speed = TUSB_SPEED_AUTO
     };
     tusb_init(0, &dev_init); // initialize device stack on roothub port 0
-    while(0){
+    while(1){
         tud_task();
     }
 }
