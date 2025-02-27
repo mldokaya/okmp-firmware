@@ -17,6 +17,11 @@
     #endif
 #endif
 
+enum issi_status{
+    ISSI_OK,
+    ISSI_ERROR_INVALID_PARAM
+};
+
 typedef int (*issi_write_buf_func)(void *i2c, uint8_t reg, uint8_t *buf, uint8_t n_bytes); // For writing n bytes to n contiguous registers
 typedef int (*issi_write_single_func)(void *i2c, uint8_t reg, uint8_t byte); // For writing to a single register
 typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf); // For reading from a register (not used yet)
@@ -39,6 +44,11 @@ typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf
 
 #define ISSI_PINS_USED 5
 #define ISSI_LED_COUNT 16
+
+#define ISSI_XMIN 0
+#define ISSI_XMAX 15
+#define ISSI_YMIN 0
+#define ISSI_YMAX 8
 
 //
 typedef struct is31fl3731_dev{
@@ -180,5 +190,11 @@ typedef enum issi_ags{
     ISSI_AGS_18dB,
     ISSI_AGS_21dB
 }ISSI_AGS;
+
+#define ISSI_IS_VALID_PAGE(page) (page >= ISSI_FRAME1 && page <= ISSI_FUNCTION)
+#define ISSI_IS_VALID_FRAME(frame) (frame >= ISSI_FRAME1 && frame <= ISSI_FRAME8)
+#define ISSI_IS_VALID_LED_REG(reg) (reg >= ISSI_CA1 && reg <= ISSI_CB9)
+#define ISSI_IS_VALID_FUNC(func) (func >= ISSI_FUNC_CONFIG && func <= ISSI_FUNC_ADC)
+#define ISSI_IS_VALID_POS(x, y) (x >= ISSI_XMIN && x <= ISSI_XMAX && y >= ISSI_YMIN && y <= ISSI_YMAX)
 
 #endif
