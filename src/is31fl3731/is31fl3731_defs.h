@@ -5,6 +5,18 @@
 #include <stdint.h>
 #include "printf.h"
 
+#ifndef ISSI_ASSERT
+    #ifdef NDEBUG
+        #define ISSI_ASSERT(x) ((void)0)
+    #else
+        // Define assert here
+        #include "FreeRTOS.h"
+        #include "task.h"
+        #include "FreeRTOSConfig.h"
+        #define ISSI_ASSERT(x) configASSERT(x)
+    #endif
+#endif
+
 typedef int (*issi_write_buf_func)(void *i2c, uint8_t reg, uint8_t *buf, uint8_t n_bytes); // For writing n bytes to n contiguous registers
 typedef int (*issi_write_single_func)(void *i2c, uint8_t reg, uint8_t byte); // For writing to a single register
 typedef int (*issi_read_func)(void *i2c, uint8_t addr, uint8_t reg, uint8_t *buf); // For reading from a register (not used yet)
