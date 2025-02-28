@@ -94,7 +94,6 @@ if(CMAKE_CROSSCOMPILING)
         # Add user defined libraries
     )
 else()
-    # TODO: Add unit tests
     include(CTest)
     add_library(Unity STATIC
         external/Unity/src/unity.c
@@ -103,6 +102,7 @@ else()
         external/Unity/src
     )
     set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
+    add_compile_definitions(UNIT_TESTING)
     enable_testing()
     add_subdirectory(tests)
 endif()
