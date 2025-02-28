@@ -7,14 +7,13 @@ int issi_init_frame(struct is31fl3731_dev *issi, uint8_t frame, uint8_t *state){
     }
     if(!state){
         for(int i = 0; i < ISSI_BYTES_PER_FRAME; i++){
-            issi->buffer[frame + i] = 0;
+            issi->buffer[frame * ISSI_BYTES_PER_FRAME + i] = 0;
         }
     }
     else{
         for(int i = 0; i < ISSI_BYTES_PER_FRAME; i++){
-            issi->buffer[frame + i] = state[i];
+            issi->buffer[frame * ISSI_BYTES_PER_FRAME + i] = state[i];
         }
-        
     }
     return ISSI_OK;
 }
@@ -145,8 +144,8 @@ int issi_set_blink_group(struct is31fl3731_dev *issi, uint8_t frame, uint8_t *x,
 }
 
 int issi_set_blink_all(struct is31fl3731_dev *issi, uint8_t frame, uint8_t *x, uint8_t *y, bool state, bool update){
-    ISSI_ASSERT(issi && ISSI_IS_VALID_FRAME(frame) && x && y && state);
-    if(!issi || !ISSI_IS_VALID_FRAME(frame) || !x || !y || !state){
+    ISSI_ASSERT(issi && ISSI_IS_VALID_FRAME(frame) && x && y);
+    if(!issi || !ISSI_IS_VALID_FRAME(frame) || !x || !y){
         return ISSI_ERROR_INVALID_PARAM;
     }
     for(int i = 0; i < ISSI_LED_COUNT; i++){
@@ -174,6 +173,9 @@ int issi_set_pwm(struct is31fl3731_dev *issi, uint8_t frame, uint8_t x, uint8_t 
 
 int issi_set_pwm_group(struct is31fl3731_dev *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t *val, bool update){
     ISSI_ASSERT(issi && ISSI_IS_VALID_FRAME(frame) && x && y && val);
+    if(!issi || !x || !y || !val){
+        return ISSI_ERROR_INVALID_PARAM;
+    }
     for(int i = 0; i < ISSI_LED_COUNT; i++){
         ISSI_ASSERT(ISSI_IS_VALID_POS(x[i], y[i]));
         if(!ISSI_IS_VALID_POS(x[i], y[i])){
@@ -189,6 +191,9 @@ int issi_set_pwm_group(struct is31fl3731_dev *issi, uint8_t frame, uint8_t *x, u
 
 int issi_set_pwm_all(struct is31fl3731_dev *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t val, bool update){
     ISSI_ASSERT(issi && ISSI_IS_VALID_FRAME(frame) && x && y && val);
+    if(!issi || !x || !y){
+        return ISSI_ERROR_INVALID_PARAM;
+    }
     for(int i = 0; i < ISSI_LED_COUNT; i++){
         ISSI_ASSERT(ISSI_IS_VALID_POS(x[i], y[i]));
         if(!ISSI_IS_VALID_POS(x[i], y[i])){
