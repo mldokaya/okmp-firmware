@@ -28,7 +28,7 @@ void sh1106_set_page(struct sh1106_dev *sh1106, uint8_t page){
 void sh1106_set_col(struct sh1106_dev *sh1106, uint8_t col){
     col += SH1106_COL_OFFSET; // Shifting to account for unused columns
     sh1106_send_cmd(sh1106, col & 0x0F);
-    sh1106_send_cmd(sh1106, (col >> 4) | 0x10);
+    sh1106_send_cmd(sh1106, (col >> 4) | SH1106_COLUMN_HIGH_OFFSET);
 }
 
 void sh1106_clear(uint8_t *buffer){
@@ -46,27 +46,23 @@ void sh1106_fill(uint8_t *buffer){
 void sh1106_update_region(struct sh1106_dev *sh1106, uint8_t *buffer, uint8_t x, uint8_t y, uint8_t w, uint8_t h){
     int start_page = y / 8;
     int end_page = (y + h - 1) / 8;
-    x += SH1106_COL_OFFSET; // Shifting to account for unused columns
     for(int i = start_page; i <= end_page; i++){
-        sh1106_send_cmd(sh1106, 0xB0 + i);
-        sh1106_send_cmd(sh1106, x & 0x0F);
-        sh1106_send_cmd(sh1106, (x >> 4) | 0x10);
-        sh1106_send_data(sh1106, &buffer[i * 128 + x - 2], w);
+        sh1106_set_page(sh1106, i);
+        sh1106_set_col(sh1106, x);
+        sh1106_send_data(sh1106, &buffer[i * 128 + x], w);
     }
 }
 
 void sh1106_clear_region(struct sh1106_dev *sh1106, uint8_t *buffer, uint8_t x, uint8_t y, uint8_t w, uint8_t h){
     int start_page = y / 8;
     int end_page = (y + h) / 8;
-    x += SH1106_COL_OFFSET; // Shifting to account for unused columns
     for(int i = start_page; i < end_page; i++){
         for(int j = 0; j < w; j++){
             buffer[i * 128 + x + w] = 0x00;
         }
-        sh1106_send_cmd(sh1106, 0xB0 + i);
-        sh1106_send_cmd(sh1106, x & 0x0F);
-        sh1106_send_cmd(sh1106, (x >> 4) | 0x10);
-        sh1106_send_data(sh1106, &buffer[i * 128 + x - 2], w);
+        sh1106_set_page(sh1106, i);
+        sh1106_set_col(sh1106, x);
+        sh1106_send_data(sh1106, &buffer[i * 128 + x], w);
     }
 
 }
