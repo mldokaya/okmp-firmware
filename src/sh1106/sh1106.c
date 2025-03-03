@@ -28,13 +28,13 @@ void sh1106_set_col(struct sh1106_dev *sh1106, uint8_t col){
 }
 
 void sh1106_clear(uint8_t *buffer){
-    for(int i = 0; i < SH1106_PIXELS; i++){
+    for(int i = 0; i < SH1106_BYTES; i++){
         buffer[i] = 0x00;
     }
 }
 
 void sh1106_fill(uint8_t *buffer){
-    for(int i = 0; i < SH1106_PIXELS; i++){
+    for(int i = 0; i < SH1106_BYTES; i++){
         buffer[i] = 0xFF;
     }
 }

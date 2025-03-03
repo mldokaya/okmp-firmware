@@ -8,7 +8,7 @@
 #define SH1106_PAGES 8
 #define SH1106_WIDTH 128
 #define SH1106_HEIGHT 64
-#define SH1106_PIXELS SH1106_PAGES * SH1106_WIDTH
+#define SH1106_BYTES SH1106_PAGES * SH1106_WIDTH
 #define SH1106_COL_OFFSET 2 // While the SH1106 supports 132x64 pixels, most displays using it seem to be 128x64 with 2 unused columns on either side
 
 struct sh1106_dev; // Forward declaration for function pointers
