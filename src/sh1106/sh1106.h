@@ -33,6 +33,13 @@ void sh1106_send_cmd(struct sh1106_dev *sh1106, uint8_t cmd);
 void sh1106_send_cmd_list(struct sh1106_dev *sh1106, uint8_t *cmds, uint8_t n_cmds);
 
 /**
+ * @brief Sets the page display data will be written to
+ * @param sh1106 Struct for storing buffer and IO functions
+ * @param page Page to set
+ */
+void sh1106_set_page(struct sh1106_dev *sh1106, uint8_t page);
+
+/**
  * @brief Sets the column display data will be written to
  * @param sh1106 Struct for storing buffer and IO functions
  * @param col Column to set

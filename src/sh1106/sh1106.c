@@ -21,6 +21,10 @@ void sh1106_send_cmd_list(struct sh1106_dev *sh1106, uint8_t *cmds, uint8_t n_cm
     sh1106->write(sh1106, cmds, n_cmds);
 }
 
+void sh1106_set_page(struct sh1106_dev *sh1106, uint8_t page){
+    sh1106_send_cmd(sh1106, SH1106_SET_PAGE + page);
+}
+
 void sh1106_set_col(struct sh1106_dev *sh1106, uint8_t col){
     col += SH1106_COL_OFFSET; // Shifting to account for unused columns
     sh1106_send_cmd(sh1106, col & 0x0F);
