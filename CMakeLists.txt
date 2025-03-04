@@ -54,7 +54,6 @@ if(CMAKE_CROSSCOMPILING)
         src/led.c
         src/is31fl3731/is31fl3731.c
         src/sh1106/sh1106.c
-        src/gui.c
         src/display.c
         external/tinyusb/src/tusb.c
         external/tinyusb/src/class/hid/hid_device.c

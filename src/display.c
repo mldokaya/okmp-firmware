@@ -64,7 +64,7 @@ static uint8_t LED_BLINK[] = {
 //   0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0xFF, 0xFF
 // };
 
-static gui_digits DISPLAY_DIGITS = {
+static display_digits DISPLAY_DIGITS = {
   .spacing = 2,
   .bytes = {
     {0xFF, 0xFF, 0x0F, 0x0F, 0x0F, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xF0, 0xF0, 0xF0, 0xFF, 0xFF},
@@ -111,6 +111,7 @@ static void sh1106_delay(uint32_t delay);
 static void sh1106_set(struct gpio_pin *pin, bool state);
 static void sh1106_write(struct sh1106_dev *ctx, uint8_t *data, const uint8_t n_bytes);
 static void update_state(uint8_t *buffer, display_event *current, display_event *prev);
+static void draw(uint8_t *buffer, uint8_t *bytes, uint8_t w, uint8_t h, int x, int y);
 
 void display_task(void *argument){
     osMessageQueueId_t *display_queue_id = (osMessageQueueId_t *)argument;
@@ -125,7 +126,7 @@ void display_task(void *argument){
     for(int i = 0; i < 8 * 128; i++){
         buffer[i] = 0x00;
     }
-    gui_draw(buffer, LED, 52, 16, 38, 14);
+    draw(buffer, LED, 52, 16, 38, 14);
     sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
     display_event d_event;
     display_event prev = {.mode = MODE_LED_PWM, .val = 0};
@@ -169,30 +170,52 @@ static void sh1106_write(struct sh1106_dev *ctx, uint8_t *data, const uint8_t n_
     cs_high();
 }
 
+static void draw(uint8_t *buffer, uint8_t *bytes, uint8_t w, uint8_t h, int x, int y){
+    int init_page = y / 8;
+    int pages = (y + h) / 8 - init_page;
+    uint8_t y_shift = y % 8;
+    for(int i = 0; i < pages; i++){
+        for(int j = 0; j < w; j++){
+            int buf_idx = (init_page + i) * DISPLAY_WIDTH + x + j;
+            if(y_shift){
+                buffer[buf_idx] &= ~(0xFF << y_shift);
+                buffer[buf_idx + DISPLAY_WIDTH] &= ~(0xFF >> (8 - y_shift));
+                uint8_t upper_bits = bytes[i * w + j] << y_shift;
+                uint8_t lower_bits = bytes[i * w + j] >> (8 - y_shift);
+                buffer[buf_idx] |= upper_bits;
+                buffer[buf_idx + DISPLAY_WIDTH] |= lower_bits;
+            }
+            else{
+                buffer[buf_idx] = bytes[i * w + j];
+            }
+        }
+    }
+}
+
 static void update_state(uint8_t *buffer, display_event *current, display_event *prev){
     sh1106_clear(buffer);
     switch(current->mode){
         case MODE_LED_DISPLAY:
-            gui_draw(buffer, LED, 52, 16, 38, 14);
+            draw(buffer, LED, 52, 16, 38, 14);
             switch(current->val){
                 case LED_DISPLAY_OFF:
-                    gui_draw(buffer, LED_OFF, 52, 16, 38, 34);
+                    draw(buffer, LED_OFF, 52, 16, 38, 34);
                     break;
                 case LED_DISPLAY_BLINK:
-                    gui_draw(buffer, LED_BLINK, 52, 16, 38, 34);
+                    draw(buffer, LED_BLINK, 52, 16, 38, 34);
                     break;
                 case LED_DISPLAY_ON:
-                    gui_draw(buffer, LED_ON, 52, 16, 38, 34);
+                    draw(buffer, LED_ON, 52, 16, 38, 34);
                     break;
                 default:
                     break;
             }
             break;
         case MODE_LED_PWM:
-            gui_draw(buffer, PWM, 52, 16, 38, 14);
-            draw_digit(buffer, DISPLAY_DIGITS.bytes[current->val / 100], 42, 34);
-            draw_digit(buffer, DISPLAY_DIGITS.bytes[(current->val / 10) % 10], 60, 34);
-            draw_digit(buffer, DISPLAY_DIGITS.bytes[current->val % 10], 78, 34);
+            draw(buffer, PWM, 52, 16, 38, 14);
+            draw(buffer, DISPLAY_DIGITS.bytes[current->val / 100], 8, 16, 42, 34);
+            draw(buffer, DISPLAY_DIGITS.bytes[(current->val / 10) % 10], 8, 16, 60, 34);
+            draw(buffer, DISPLAY_DIGITS.bytes[current->val % 10], 8, 16, 78, 34);
             break;
         default:
             break;
