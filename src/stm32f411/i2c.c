@@ -27,7 +27,7 @@ void i2c_dma_tx_init(){
     i2c_sem_id = osSemaphoreNew(1, 1, NULL);
     RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
     DMA1_Stream6->CR = 0x00;
-    while((DMA1_Stream6->CR) & DMA_SxCR_EN);
+    while((DMA1_Stream6->CR) & DMA_SxCR_EN){}
     DMA1_Stream6->CR |= ch1 | DMA_SxCR_MINC | DMA_SxCR_DIR_0 | DMA_SxCR_TCIE | DMA_SxCR_HTIE | DMA_SxCR_TEIE;
     NVIC_EnableIRQ(DMA1_Stream6_IRQn);
     NVIC_SetPriority(DMA1_Stream6_IRQn, 14);
