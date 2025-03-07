@@ -55,10 +55,8 @@ void sysclk_ll_init(){
 }
 
 void freertos_init();
-PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
-int main(void)
-{
+int main(void){
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init();
 
@@ -66,26 +64,8 @@ int main(void)
     sysclk_ll_init();
 
     /* Initialize all configured peripherals */
-    // MX_GPIO_Init();
     gpio_init();
-    spi_init();
     i2c_init();
-
-    hpcd_USB_OTG_FS.Instance = USB_OTG_FS;
-    hpcd_USB_OTG_FS.Init.dev_endpoints = 4;
-    hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
-    hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
-    hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
-    hpcd_USB_OTG_FS.Init.Sof_enable = DISABLE;
-    hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
-    hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
-    hpcd_USB_OTG_FS.Init.vbus_sensing_enable = DISABLE;
-    hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
-
-    if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
-    {
-        Error_Handler();
-    }
 
     /* Init scheduler */
     osKernelInitialize();
@@ -115,29 +95,3 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
         HAL_IncTick();
     }
 }
-
-/**
-    * @brief  This function is executed in case of error occurrence.
-    * @retval None
-    */
-void Error_Handler(void){
-    __disable_irq();
-    while(1){}
-}
-
-#ifdef  USE_FULL_ASSERT
-/**
-    * @brief  Reports the name of the source file and the source line number
-    *         where the assert_param error has occurred.
-    * @param  file: pointer to the source file name
-    * @param  line: assert_param error line source number
-    * @retval None
-    */
-void assert_failed(uint8_t *file, uint32_t line)
-{
-    /* USER CODE BEGIN 6 */
-    /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-    /* USER CODE END 6 */
-}
-#endif /* USE_FULL_ASSERT */

@@ -1,5 +1,8 @@
 #include "gpio.h"
 
+void Error_Handler(void);
+PCD_HandleTypeDef hpcd_USB_OTG_FS;
+
 void gpio_init(){
     LL_EXTI_InitTypeDef EXTI_InitStruct = {0};
     LL_GPIO_InitTypeDef gpio_struct = {0};
@@ -60,8 +63,8 @@ void gpio_init(){
 
     gpio_struct.Pin = LL_GPIO_PIN_11 | LL_GPIO_PIN_12;
     gpio_struct.Mode = LL_GPIO_MODE_ALTERNATE;
-    gpio_struct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     gpio_struct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+    gpio_struct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     gpio_struct.Alternate = LL_GPIO_AF_10;
     LL_GPIO_Init(GPIOA, &gpio_struct);
 
@@ -72,42 +75,43 @@ void gpio_init(){
 
     gpio_struct.Pin = LL_GPIO_PIN_10;
     gpio_struct.Mode = LL_GPIO_MODE_ALTERNATE;
+    gpio_struct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
     gpio_struct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
     gpio_struct.Pull = LL_GPIO_PULL_UP;
-    gpio_struct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
     LL_GPIO_Init(GPIOA, &gpio_struct);
+
+    gpio_struct.Pin = LL_GPIO_PIN_5 | LL_GPIO_PIN_7;
+    gpio_struct.Mode = LL_GPIO_MODE_ALTERNATE;
+    gpio_struct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+    gpio_struct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    gpio_struct.Pull = LL_GPIO_PULL_NO;
+    gpio_struct.Alternate = LL_GPIO_AF_5;
+    LL_GPIO_Init(GPIOA, &gpio_struct);
+
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
     LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_OTGFS);
     LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
 
-    LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTA, LL_SYSCFG_EXTI_LINE8);
-
-    EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_8;
-    EXTI_InitStruct.LineCommand = ENABLE;
-    EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-    EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING_FALLING;
-    LL_EXTI_Init(&EXTI_InitStruct);
-
-
     NVIC_SetPriority(OTG_FS_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 5, 0));
     NVIC_EnableIRQ(OTG_FS_IRQn);
+
+    hpcd_USB_OTG_FS.Instance = USB_OTG_FS;
+    hpcd_USB_OTG_FS.Init.dev_endpoints = 4;
+    hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
+    hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
+    hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+    hpcd_USB_OTG_FS.Init.Sof_enable = DISABLE;
+    hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
+    hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
+    hpcd_USB_OTG_FS.Init.vbus_sensing_enable = DISABLE;
+    hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
+
+    if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK){
+        Error_Handler();
+    }
 }
 
-void gpio_pin_init(GPIO_TypeDef *port, uint32_t pins, gpio_config *config){
-    int pin_num = 0;
-    while(pins){
-        int pin_offset = pin_num * 2;
-        if(pins & 0x0001){
-            MODIFY_REG(port->MODER, 0x3 << pin_offset, config->mode << pin_offset);
-            MODIFY_REG(port->OTYPER, 0x1 << pin_num, config->otype << pin_num);
-            MODIFY_REG(port->OSPEEDR, 0x3 << pin_offset, config->ospeed << pin_offset);
-            MODIFY_REG(port->PUPDR, 0x3 << pin_offset, config->pupd << pin_offset);
-            if(config->mode == GPIO_MODE_ALTERNATE){
-                uint8_t reg = pin_num / 8;
-                uint8_t offset = (pin_num % 8) * 4;
-                MODIFY_REG(port->AFR[reg], 0xF << offset, config->af << offset);
-            }
-        }
-        pin_num++;
-        pins >>= 1;
-    }
+void Error_Handler(void){
+    __disable_irq();
+    while(1){}
 }
