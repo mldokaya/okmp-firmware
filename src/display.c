@@ -123,11 +123,10 @@ void display_task(void *argument){
     };
     sh1106_init(&sh1106);
     sh1106_send_cmd_list(&sh1106, init_cmds, sizeof(init_cmds));
-    for(int i = 0; i < 8 * 128; i++){
-        buffer[i] = 0x00;
-    }
-    draw(buffer, LED, 52, 16, 38, 14);
-    sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
+    sh1106_clear(&sh1106);
+    draw(&sh1106, LED, 52, 16, 38, 14);
+    sh1106_update_region(&sh1106, 0, 0, 128, 64);
+
     display_event d_event;
     display_event prev = {.mode = MODE_LED_PWM, .val = 0};
     bool active = true;
@@ -135,9 +134,9 @@ void display_task(void *argument){
         osStatus_t status = osMessageQueueGet(*display_queue_id, (void *)&d_event, NULL, DISPLAY_TIMEOUT_MS);
         if(status == osOK){
             if(active){
-                sh1106_clear(buffer);
-                update_state(buffer, &d_event, &prev);
-                sh1106_update_region(&sh1106, buffer, 0, 0, 128, 64);
+                sh1106_clear(&sh1106);
+                update_state(&sh1106, &d_event, &prev);
+                sh1106_update_region(&sh1106, 0, 0, 128, 64);
             }
             else{
                 sh1106_send_cmd(&sh1106, SH1106_SET_DISPLAY | 0x1);
@@ -170,7 +169,7 @@ static void sh1106_write(struct sh1106_dev *ctx, uint8_t *data, const uint8_t n_
     cs_high();
 }
 
-static void draw(uint8_t *buffer, uint8_t *bytes, uint8_t w, uint8_t h, int x, int y){
+static void draw(struct sh1106_dev *sh1106, uint8_t *bytes, uint8_t w, uint8_t h, int x, int y){
     int init_page = y / 8;
     int pages = (y + h) / 8 - init_page;
     uint8_t y_shift = y % 8;
@@ -178,44 +177,44 @@ static void draw(uint8_t *buffer, uint8_t *bytes, uint8_t w, uint8_t h, int x, i
         for(int j = 0; j < w; j++){
             int buf_idx = (init_page + i) * DISPLAY_WIDTH + x + j;
             if(y_shift){
-                buffer[buf_idx] &= ~(0xFF << y_shift);
-                buffer[buf_idx + DISPLAY_WIDTH] &= ~(0xFF >> (8 - y_shift));
+                sh1106->buffer[buf_idx] &= ~(0xFF << y_shift);
+                sh1106->buffer[buf_idx + DISPLAY_WIDTH] &= ~(0xFF >> (8 - y_shift));
                 uint8_t upper_bits = bytes[i * w + j] << y_shift;
                 uint8_t lower_bits = bytes[i * w + j] >> (8 - y_shift);
-                buffer[buf_idx] |= upper_bits;
-                buffer[buf_idx + DISPLAY_WIDTH] |= lower_bits;
+                sh1106->buffer[buf_idx] |= upper_bits;
+                sh1106->buffer[buf_idx + DISPLAY_WIDTH] |= lower_bits;
             }
             else{
-                buffer[buf_idx] = bytes[i * w + j];
+                sh1106->buffer[buf_idx] = bytes[i * w + j];
             }
         }
     }
 }
 
-static void update_state(uint8_t *buffer, display_event *current, display_event *prev){
-    sh1106_clear(buffer);
+static void update_state(struct sh1106_dev *sh1106, display_event *current, display_event *prev){
+    sh1106_clear(sh1106);
     switch(current->mode){
         case MODE_LED_DISPLAY:
-            draw(buffer, LED, 52, 16, 38, 14);
+            draw(sh1106, LED, 52, 16, 38, 14);
             switch(current->val){
                 case LED_DISPLAY_OFF:
-                    draw(buffer, LED_OFF, 52, 16, 38, 34);
+                    draw(sh1106, LED_OFF, 52, 16, 38, 34);
                     break;
                 case LED_DISPLAY_BLINK:
-                    draw(buffer, LED_BLINK, 52, 16, 38, 34);
+                    draw(sh1106, LED_BLINK, 52, 16, 38, 34);
                     break;
                 case LED_DISPLAY_ON:
-                    draw(buffer, LED_ON, 52, 16, 38, 34);
+                    draw(sh1106, LED_ON, 52, 16, 38, 34);
                     break;
                 default:
                     break;
             }
             break;
         case MODE_LED_PWM:
-            draw(buffer, PWM, 52, 16, 38, 14);
-            draw(buffer, DISPLAY_DIGITS.bytes[current->val / 100], 8, 16, 42, 34);
-            draw(buffer, DISPLAY_DIGITS.bytes[(current->val / 10) % 10], 8, 16, 60, 34);
-            draw(buffer, DISPLAY_DIGITS.bytes[current->val % 10], 8, 16, 78, 34);
+            draw(sh1106, PWM, 52, 16, 38, 14);
+            draw(sh1106, DISPLAY_DIGITS.bytes[current->val / 100], 8, 16, 42, 34);
+            draw(sh1106, DISPLAY_DIGITS.bytes[(current->val / 10) % 10], 8, 16, 60, 34);
+            draw(sh1106, DISPLAY_DIGITS.bytes[current->val % 10], 8, 16, 78, 34);
             break;
         default:
             break;

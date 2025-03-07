@@ -47,16 +47,21 @@ void sh1106_set_page(struct sh1106_dev *sh1106, uint8_t page);
 void sh1106_set_col(struct sh1106_dev *sh1106, uint8_t col);
 
 /**
- * @brief Clears a buffer (does not actually update the display driver though)
- * @param buffer Buffer to be cleared
+ * @brief Clears the display buffer
+ * @param sh1106 Struct for storing buffer and IO functions
  */
-void sh1106_clear(uint8_t *buffer);
+void sh1106_clear(struct sh1106_dev *sh1106);
 
 /**
- * @brief Fills a buffer (does not actually update the display driver though)
- * @param buffer Buffer to be filled
+ * @brief Fills the display buffer
+ * @param sh1106 Struct for storing buffer and IO functions
  */
-void sh1106_fill(uint8_t *buffer);
+void sh1106_fill(struct sh1106_dev *sh1106);
+/**
+ * @brief Updates the full display
+ * @param sh1106 Struct for storing buffer and IO functions
+ */
+void sh1106_update_display(struct sh1106_dev *sh1106);
 
 /**
  * @brief Updates a rectangular w x h region of the display
@@ -67,7 +72,7 @@ void sh1106_fill(uint8_t *buffer);
  * @param w Width of the region
  * @param h Height of the region
  */
-void sh1106_update_region(struct sh1106_dev *sh1106, uint8_t *buffer, uint8_t x, uint8_t y, uint8_t w, uint8_t h);
+void sh1106_update_region(struct sh1106_dev *sh1106, uint8_t x, uint8_t y, uint8_t w, uint8_t h);
 
 /**
  * @brief Clears a rectangular w x h region of the display
@@ -78,6 +83,6 @@ void sh1106_update_region(struct sh1106_dev *sh1106, uint8_t *buffer, uint8_t x,
  * @param w Width of the region
  * @param h Height of the region
  */
-void sh1106_clear_region(struct sh1106_dev *sh1106, uint8_t *buffer, uint8_t x, uint8_t y, uint8_t w, uint8_t h);
+void sh1106_clear_region(struct sh1106_dev *sh1106, uint8_t x, uint8_t y, uint8_t w, uint8_t h, bool update);
 
 #endif
