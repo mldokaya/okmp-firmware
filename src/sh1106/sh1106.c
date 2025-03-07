@@ -1,24 +1,19 @@
 #include "sh1106.h"
 
 void sh1106_init(struct sh1106_dev *sh1106){
-    sh1106->set(&sh1106->rst, false);
-    sh1106->delay(1);
-    sh1106->set(&sh1106->rst, true);
+    sh1106->reset();
 }
 
 void sh1106_send_data(struct sh1106_dev *sh1106, uint8_t *data, uint8_t n_bytes){
-    sh1106->set(&sh1106->a0, true); // A0 = high for display data
-    sh1106->write((void *)sh1106, data, n_bytes);
+    sh1106->write((void *)sh1106, data, n_bytes, true);
 }
 
 void sh1106_send_cmd(struct sh1106_dev *sh1106, uint8_t cmd){
-    sh1106->set(&sh1106->a0, false); // A0 = low for commands
-    sh1106->write(sh1106, &cmd, 1);
+    sh1106->write(sh1106, &cmd, 1, false);
 }
 
 void sh1106_send_cmd_list(struct sh1106_dev *sh1106, uint8_t *cmds, uint8_t n_cmds){
-    sh1106->set(&sh1106->a0, false); // A0 = low for commands
-    sh1106->write(sh1106, cmds, n_cmds);
+    sh1106->write(sh1106, cmds, n_cmds, false);
 }
 
 void sh1106_set_page(struct sh1106_dev *sh1106, uint8_t page){

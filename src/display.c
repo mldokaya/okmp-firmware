@@ -1,8 +1,11 @@
 #include "display.h"
 #include "cmsis_os2.h"
 #include "main.h"
+#include "printf.h"
+#include "spi.h"
 
 #define DISPLAY_TIMEOUT_MS 5000
+#define SPI_DMA_THRESHOLD 50
 
 static uint8_t LED[] = {
   0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -105,22 +108,22 @@ static uint8_t init_cmds[] = {
     SH1106_SET_DISPLAY | 0x01
 };
 
-static void send_cmd(uint8_t cmd);
-static void send_data(uint8_t *data, uint8_t len);
-static void sh1106_delay(uint32_t delay);
-static void sh1106_set(struct gpio_pin *pin, bool state);
-static void sh1106_write(struct sh1106_dev *ctx, uint8_t *data, const uint8_t n_bytes);
-static void update_state(uint8_t *buffer, display_event *current, display_event *prev);
-static void draw(uint8_t *buffer, uint8_t *bytes, uint8_t w, uint8_t h, int x, int y);
+static void sh1106_reset();
+static void sh1106_write(struct sh1106_dev *ctx, uint8_t *bytes, const uint8_t n_bytes, bool data);
+static void update_state(struct sh1106_dev *sh1106, display_event *current, display_event *prev);
+static void draw(struct sh1106_dev *sh1106, uint8_t *bytes, uint8_t w, uint8_t h, int x, int y);
 
 void display_task(void *argument){
+    spi_init();
+    spi_dma_init();
     osMessageQueueId_t *display_queue_id = (osMessageQueueId_t *)argument;
     struct sh1106_dev sh1106 = {
       .a0 = {.pin = OLED_A0_Pin, .port = (void *)OLED_A0_GPIO_Port},
       .rst = {.pin = OLED_RES_Pin, .port = (void *)OLED_RES_GPIO_Port},
       .cs = {.pin = OLED_CS_Pin, .port = (void *)OLED_CS_GPIO_Port},
-      .write = sh1106_write, .set = sh1106_set, .delay = sh1106_delay
+      .reset = sh1106_reset, .write = sh1106_write
     };
+
     sh1106_init(&sh1106);
     sh1106_send_cmd_list(&sh1106, init_cmds, sizeof(init_cmds));
     sh1106_clear(&sh1106);
@@ -150,23 +153,25 @@ void display_task(void *argument){
     }
 }
 
-static void sh1106_delay(uint32_t delay){
-    osDelay(delay);
+static void sh1106_reset(){
+    LL_GPIO_ResetOutputPin(OLED_RES_GPIO_Port, OLED_RES_Pin);
+    osDelay(1);
+    LL_GPIO_SetOutputPin(OLED_RES_GPIO_Port, OLED_RES_Pin);
 }
 
-static void sh1106_set(struct gpio_pin *pin, bool state){
-    if(state){
-        LL_GPIO_SetOutputPin(pin->port, pin->pin);
+static void sh1106_write(struct sh1106_dev *ctx, uint8_t *bytes, const uint8_t n_bytes, bool data){
+    // osSemaphoreAcquire(spi_sem_id, osWaitForever);
+    osThreadFlagsWait(0x1, osFlagsWaitAny, osWaitForever);
+    if(data){
+        LL_GPIO_SetOutputPin(ctx->a0.port, ctx->a0.pin);
+        spi_dma_transmit(bytes, n_bytes);
     }
     else{
-        LL_GPIO_ResetOutputPin(pin->port, pin->pin);
+        LL_GPIO_ResetOutputPin(ctx->a0.port, ctx->a0.pin);
+        spi_transmit(bytes, n_bytes);
+        osThreadFlagsSet(spi_thread_id, 0x1);
+        // osSemaphoreRelease(spi_sem_id);
     }
-}
-
-static void sh1106_write(struct sh1106_dev *ctx, uint8_t *data, const uint8_t n_bytes){
-    cs_low();
-    spi_transmit(data, n_bytes);
-    cs_high();
 }
 
 static void draw(struct sh1106_dev *sh1106, uint8_t *bytes, uint8_t w, uint8_t h, int x, int y){

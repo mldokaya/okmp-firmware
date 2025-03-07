@@ -3,56 +3,65 @@
 #include "stm32f411xe.h"
 #include "gpio.h"
 #include "stm32f4xx_ll_spi.h"
+#include "stm32f4xx_ll_dma.h"
 #include "printf.h"
+#include <stdbool.h>
 
-// OLED CS: PB0
+osThreadId_t spi_thread_id;
 
 void spi_init(){
-    //Enable Port A clock
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-    __NOP();
-    __NOP();
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
-    __NOP();
-    __NOP();
-
-    MODIFY_REG(GPIOB->MODER, GPIO_MODER_MODE0_Msk, GPIO_MODER_MODE0_0);
-
-    MODIFY_REG(GPIOB->OSPEEDR, GPIO_OSPEEDR_OSPEED0_Msk, GPIO_OSPEEDR_OSPEED0_1);
-
-    MODIFY_REG(GPIOA->MODER, GPIO_MODER_MODE5_Msk | GPIO_MODER_MODE7_Msk, 
-               GPIO_MODER_MODE5_1 | GPIO_MODER_MODE7_1);
-
-    MODIFY_REG(GPIOA->OSPEEDR, GPIO_OSPEEDR_OSPEED5_Msk | GPIO_OSPEEDR_OSPEED7_Msk, 
-               GPIO_OSPEEDR_OSPEED5_1 | GPIO_OSPEEDR_OSPEED7_1);
-
-    MODIFY_REG(GPIOA->AFR[0], GPIO_AFRL_AFSEL5_Msk | GPIO_AFRL_AFSEL7_Msk, 
-               GPIO_AFRL_AFSEL5_0 | GPIO_AFRL_AFSEL5_2 | GPIO_AFRL_AFSEL7_0 | GPIO_AFRL_AFSEL7_2);
-
-    //Enable SPI Clock
-	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
-    __NOP();
-    __NOP();
-    //Mode: Master
-	SPI1->CR1 |= SPI_CR1_MSTR | SPI_CR1_SSI;
-
-    SPI1->CR1 &= ~SPI_CR1_CPHA;
-    SPI1->CR1 &= ~SPI_CR1_CPOL;
-	//Baud rate to (8MHz / 2 = 4MHz)
-	SPI1->CR1 |= SPI_CR1_BR_1;
-	//MSB first
-	SPI1->CR1 &= ~(SPI_CR1_LSBFIRST);
-	//Full duplex (Transmit/Receive)
-	SPI1->CR1 &= ~(SPI_CR1_RXONLY);
-	//Data format 8-bit
-	SPI1->CR1 &= ~(SPI_CR1_DFF);
-	//Software Slave select
-	SPI1->CR1 |= SPI_CR1_SSI;
-	SPI1->CR1 |= SPI_CR1_SSM;
-	//SPI Enable
-	SPI1->CR1 |= SPI_CR1_SPE;
+	SPI1->CR1 |= SPI_CR1_MSTR | // Set to Master
+                 SPI_CR1_SSI |
+                 SPI_CR1_SSM;
+    
+    SPI1->CR1 &= ~(SPI_CR1_CPHA | // Set polarity low
+                   SPI_CR1_CPOL | // Set first data capture edge to first clock transition
+                   SPI_CR1_BR | // Set baud rate to f_PCLK/2
+                   SPI_CR1_LSBFIRST | // Set to MSB first
+                   SPI_CR1_RXONLY | // Set to Full duplex
+                   SPI_CR1_DFF); // Set to 8-bit format
+    
+    SPI1->CR2 |= SPI_CR2_TXDMAEN; // Enable DMA
+	SPI1->CR1 |= SPI_CR1_SPE; // Enable SPI
     (void)SPI1->SR;
-    printf("SPI initialized\n");
+
+    spi_thread_id = osThreadGetId();
+    osThreadFlagsSet(spi_thread_id, 0x1); // Set flag to indicate everything is ready
+}
+
+void spi_dma_init(){
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
+
+    // Reset control register and wait until it's definitely disabled
+    DMA2_Stream2->CR = 0x00;
+    while(DMA2_Stream2->CR & DMA_SxCR_EN){}
+    
+    DMA2_Stream2->CR |= DMA_SxCR_CHSEL_1 | // Set channel 2
+                        DMA_SxCR_DIR_0 | // Set direction to memory-to-peripheral mode
+                        DMA_SxCR_MINC; // Set to memory increment mode
+    DMA2_Stream2->PAR = (uint32_t)& SPI1->DR;
+    LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_2);
+
+    NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+    NVIC_SetPriority(DMA2_Stream2_IRQn, 14);
+}
+
+void DMA2_Stream2_IRQHandler(void){
+    if(DMA2->LISR & DMA_LISR_TCIF2){
+        DMA2_Stream2->CR &= ~DMA_SxCR_EN;
+        DMA2->LIFCR = DMA_LIFCR_CTCIF2; // Clear flag
+        cs_high();
+        osThreadFlagsSet(spi_thread_id, 0x1); // Set flag (the write function must wait for it)
+    }
+}
+
+void spi_dma_transmit(uint8_t *data, uint32_t size){
+    cs_low();
+    DMA2->LIFCR = DMA_LIFCR_CTCIF2; // Clear flag
+    DMA2_Stream2->PAR = (uint32_t)& SPI1->DR;
+    DMA2_Stream2->M0AR = (uint32_t)data;
+    DMA2_Stream2->NDTR = size;
+    DMA2_Stream2->CR |= DMA_SxCR_EN; // Start transmission
 }
 
 void cs_low(){
@@ -64,13 +73,20 @@ void cs_high(){
 }
 
 void spi_transmit(uint8_t *data, uint8_t size){
+    cs_low();
+
     for(int i = 0; i < size; i++){
-        while(!((SPI1->SR) & (1 << 1))){};
+        while(!(SPI1->SR & SPI_SR_TXE)){} // Wait for previous byte to be transferred
         SPI1->DR = data[i];
     }
-    while(!((SPI1->SR) & (1 << 1))){};
-    while (((SPI1->SR) & (1 << 7))){};
-	 /*Clear OVR flag*/
+
+    // Wait for SPI transmission to finish
+    while(!(SPI1->SR & SPI_SR_TXE)){}
+    while((SPI1->SR & SPI_SR_BSY)){}
+    
+    // Clear flags
 	(void) SPI1->DR;
     (void) SPI1->SR;
+
+    cs_high();
 }

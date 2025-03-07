@@ -14,8 +14,9 @@
 struct sh1106_dev; // Forward declaration for function pointers
 
 // Typedefs for platform-specific functions the driver needs
+typedef void (*sh1106_rst_func)();
 typedef void (*sh1106_io_func)(struct gpio_pin *, bool);
-typedef void (*sh1106_write_func)(struct sh1106_dev *, uint8_t *, const uint8_t);
+typedef void (*sh1106_write_func)(struct sh1106_dev *, uint8_t *, const uint8_t, bool);
 typedef void (*sh1106_delay_func)(uint32_t);
 
 struct sh1106_dev{
@@ -23,9 +24,11 @@ struct sh1106_dev{
     struct gpio_pin a0; // Controls whether data goes to the display RAM (high) or command register (low)
     struct gpio_pin cs; // Active low CS for SPI
     struct gpio_pin rst; // Active low reset
+    sh1106_rst_func reset;
     sh1106_io_func set; // platform-specific function for setting the state of GPIO pins
     sh1106_write_func write; // platform-specific function for sending data via SPI
     sh1106_delay_func delay; // platform-specific function for delaying (in ms)
+    uint8_t buffer[SH1106_BYTES];
 };
 
 #define SH1106_COLUMN_LOW_OFFSET 0x00
