@@ -5,15 +5,10 @@
 #include <stdint.h>
 #include "printf.h"
 
-#ifndef ISSI_ASSERT
-    #if defined(NDEBUG) || defined(UNIT_TESTING)
-        #define ISSI_ASSERT(x) ((void)0)
-    #else
-        #include "FreeRTOS.h"
-        #include "task.h"
-        #include "FreeRTOSConfig.h"
-        #define ISSI_ASSERT(x) configASSERT(x)
-    #endif
+#if defined(NDEBUG) || defined(UNIT_TESTING)
+    #define ASSERT(x) ((void)0)
+#else
+    #include "assert.h"
 #endif
 
 enum issi_status{
