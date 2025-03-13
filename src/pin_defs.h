@@ -1,6 +1,8 @@
 #ifndef OKMP_PIN_DEFS_H
 #define OKMP_PIN_DEFS_H
 
+#ifndef UNIT_TESTING
+
 #include "stm32f4xx_ll_gpio.h"
 
 #define OLED_RES_Pin LL_GPIO_PIN_4
@@ -34,6 +36,8 @@
 #define ROW1_GPIO_Port GPIOB
 #define ROW0_Pin LL_GPIO_PIN_7
 #define ROW0_GPIO_Port GPIOB
+
+#endif
 
 
 // Generic struct for referencing GPIO pins

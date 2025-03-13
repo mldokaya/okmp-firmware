@@ -5,6 +5,12 @@
 #include <stdint.h>
 #include "pin_defs.h"
 
+#if defined(NDEBUG) || defined(UNIT_TESTING)
+    #define ASSERT(x) ((void)0)
+#else
+    #include "assert.h"
+#endif
+
 #define SH1106_PAGES 8
 #define SH1106_WIDTH 128
 #define SH1106_HEIGHT 64
@@ -18,6 +24,11 @@ typedef void (*sh1106_rst_func)();
 typedef void (*sh1106_io_func)(struct gpio_pin *, bool);
 typedef void (*sh1106_write_func)(struct sh1106_dev *, uint8_t *, const uint8_t, bool);
 typedef void (*sh1106_delay_func)(uint32_t);
+
+enum sh1106_status{
+    SH1106_OK,
+    SH1106_ERROR_INVALID_PARAM
+};
 
 struct sh1106_dev{
     void *spi;
@@ -68,5 +79,9 @@ enum sh1106_pump_voltage{
 // 2nd byte 0x00 - 0xFF
 #define SH1106_SET_COMMMON_PADS 0xDA
 #define SH1106_SET_VCOM 0xDB
+
+#define SH1106_IS_VALID_PAGE(page) (page >= 0 && page < SH1106_PAGES)
+#define SH1106_IS_VALID_COL(col) (col >= 0 && col < SH1106_WIDTH)
+#define SH1106_IS_VALID_POS(x, y) (x >= 0 && x < SH1106_WIDTH && y >= 0 && y < SH1106_HEIGHT)
 
 #endif

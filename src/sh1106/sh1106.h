@@ -7,7 +7,7 @@
  * @brief Sets the display to its initial state
  * @param sh1106 Struct for storing buffer and IO functions
  */
-void sh1106_init(struct sh1106_dev *sh1106);
+int sh1106_init(struct sh1106_dev *sh1106);
 
 /**
  * @brief Sends data to the display
@@ -15,14 +15,14 @@ void sh1106_init(struct sh1106_dev *sh1106);
  * @param data Pointer to data
  * @param n_bytes Number of data bytes to transmit
  */
-void sh1106_send_data(struct sh1106_dev *sh1106, uint8_t *data, uint8_t n_bytes);
+int sh1106_send_data(struct sh1106_dev *sh1106, uint8_t *data, uint8_t n_bytes);
 
 /**
  * @brief Sends a command to the display
  * @param sh1106 Struct for storing buffer and IO functions
  * @param cmd Command to be sent
  */
-void sh1106_send_cmd(struct sh1106_dev *sh1106, uint8_t cmd);
+int sh1106_send_cmd(struct sh1106_dev *sh1106, uint8_t cmd);
 
 /**
  * @brief Sends multiple commands to the display
@@ -30,38 +30,38 @@ void sh1106_send_cmd(struct sh1106_dev *sh1106, uint8_t cmd);
  * @param cmds Array of commands to send
  * @param n_cmds Number of commands being sent
  */
-void sh1106_send_cmd_list(struct sh1106_dev *sh1106, uint8_t *cmds, uint8_t n_cmds);
+int sh1106_send_cmd_list(struct sh1106_dev *sh1106, uint8_t *cmds, uint8_t n_cmds);
 
 /**
  * @brief Sets the page display data will be written to
  * @param sh1106 Struct for storing buffer and IO functions
  * @param page Page to set
  */
-void sh1106_set_page(struct sh1106_dev *sh1106, uint8_t page);
+int sh1106_set_page(struct sh1106_dev *sh1106, uint8_t page);
 
 /**
  * @brief Sets the column display data will be written to
  * @param sh1106 Struct for storing buffer and IO functions
  * @param col Column to set
  */
-void sh1106_set_col(struct sh1106_dev *sh1106, uint8_t col);
+int sh1106_set_col(struct sh1106_dev *sh1106, uint8_t col);
 
 /**
  * @brief Clears the display buffer
  * @param sh1106 Struct for storing buffer and IO functions
  */
-void sh1106_clear(struct sh1106_dev *sh1106);
+int sh1106_clear(struct sh1106_dev *sh1106);
 
 /**
  * @brief Fills the display buffer
  * @param sh1106 Struct for storing buffer and IO functions
  */
-void sh1106_fill(struct sh1106_dev *sh1106);
+int sh1106_fill(struct sh1106_dev *sh1106);
 /**
  * @brief Updates the full display
  * @param sh1106 Struct for storing buffer and IO functions
  */
-void sh1106_update_display(struct sh1106_dev *sh1106);
+int sh1106_update_display(struct sh1106_dev *sh1106);
 
 /**
  * @brief Updates a rectangular w x h region of the display
@@ -72,7 +72,7 @@ void sh1106_update_display(struct sh1106_dev *sh1106);
  * @param w Width of the region
  * @param h Height of the region
  */
-void sh1106_update_region(struct sh1106_dev *sh1106, uint8_t x, uint8_t y, uint8_t w, uint8_t h);
+int sh1106_update_region(struct sh1106_dev *sh1106, uint8_t x, uint8_t y, uint8_t w, uint8_t h);
 
 /**
  * @brief Clears a rectangular w x h region of the display
@@ -83,6 +83,6 @@ void sh1106_update_region(struct sh1106_dev *sh1106, uint8_t x, uint8_t y, uint8
  * @param w Width of the region
  * @param h Height of the region
  */
-void sh1106_clear_region(struct sh1106_dev *sh1106, uint8_t x, uint8_t y, uint8_t w, uint8_t h, bool update);
+int sh1106_clear_region(struct sh1106_dev *sh1106, uint8_t x, uint8_t y, uint8_t w, uint8_t h, bool update);
 
 #endif
