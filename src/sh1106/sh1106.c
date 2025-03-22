@@ -10,8 +10,8 @@ int sh1106_init(struct sh1106_dev *sh1106){
 }
 
 int sh1106_send_data(struct sh1106_dev *sh1106, uint8_t *data, uint8_t n_bytes){
-    ASSERT(sh1106 && data != NULL);
-    if(!sh1106){
+    ASSERT(sh1106 && data);
+    if(!sh1106 || !data){
         return SH1106_ERROR_INVALID_PARAM;
     }
     sh1106->write((void *)sh1106, data, n_bytes, true);
@@ -111,7 +111,7 @@ int sh1106_clear_region(struct sh1106_dev *sh1106, uint8_t x, uint8_t y, uint8_t
     }
     int start_page = y / 8;
     int end_page = (y + h) / 8;
-    for(int i = start_page; i < end_page; i++){
+    for(int i = start_page; i <= end_page; i++){
         for(int j = 0; j < w; j++){
             sh1106->buffer[i * 128 + x + j] = 0x00;
         }
