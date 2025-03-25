@@ -83,42 +83,34 @@ void task_input_update(void *argument){
     event.mode = 0;
     int timeout = 0;
     bool active = true;
+    okmp_mode mode = 0;
+    input_action action;
     while(1){
         if(input_update_keys(keys)){
             input_usb_update(keys, &report);
             tud_hid_report(0, &report.report, sizeof(report.report));
         }
         encoder_status status = update_encoder(&encoder);
-        if(status & RE_SW_CHANGE && encoder.sw_pressed){
-            encoder.mode++;
-            encoder.mode %= N_OKMP_MODES;
-            event.mode = encoder.mode;
-            event.action = ENCODER_SW_PRESSED;
-            if(active){
-                osMessageQueuePut(*id, (void *)&event, 0, 0);
-            }
-            else{
+        if(status){
+            if(!active){
                 display_event d_event = {.mode = event.mode, .val = 0};
                 osMessageQueuePut(display_queue_id, (void *)&d_event, 0, 0);
-            }
-            active = true;
-            timeout = 0;
-        }
-        if(status & RE_POS_CHANGE){
-            if(encoder.dir == ENCODER_DIR_CW){
-                event.action = ENCODER_CW;
-            }
+                active = true;
+            }   
             else{
-                event.action = ENCODER_CCW;
+                if(status & RE_SW_PRESSED){
+                    mode++;
+                    mode %= N_OKMP_MODES;
+                    action = ENCODER_SW_PRESSED;
+                }
+                else if(status & RE_CW){
+                    action = ENCODER_CW;
+                }
+                else if(status & RE_CCW){
+                    action = ENCODER_CCW;
+                }
+                osMessageQueuePut(*id, (void *)&action, 0, 0);
             }
-            if(active){
-                osMessageQueuePut(*id, (void *)&event, 0, 0);
-            }
-            else{
-                display_event d_event = {.mode = MODE_WAKEUP, .val = 0};
-                osMessageQueuePut(display_queue_id, (void *)&d_event, 0, 0);
-            }
-            active = true;
             timeout = 0;
         }
         if(timeout >= TIMEOUT_MS && active){
@@ -190,67 +182,38 @@ static uint8_t is_button_released(uint8_t *history){
 static encoder_status update_encoder(rotary_encoder *encoder){
     encoder_status status = RE_NO_CHANGE;
     update_sw(&encoder->sw_state);
-    if(is_button_pressed(&encoder->sw_state) && !encoder->sw_pressed){
-        encoder->sw_pressed = true;
-        status = RE_SW_CHANGE;
+    if(is_button_pressed(&encoder->sw_state)){
+        if(!encoder->sw_pressed){
+            encoder->sw_pressed = true;
+            status = RE_SW_PRESSED;
+        }
     }
     else{
         encoder->sw_pressed = false;
     }
-    // if(is_button_released(&encoder->sw_state) && encoder->sw_pressed){
-    //     encoder->sw_pressed = false;
-    //     status = RE_SW_CHANGE;
-    // }
-    // encoder->sw_state <<= 1;
-    // encoder->sw_state |= (encoder->port_SW->IDR & encoder->pin_SW) == 0;
-    // if(encoder->sw_state == 0xFFFF && !encoder->sw_pressed){
-    //     encoder->sw_pressed = true;
-    //     status += RE_SW_CHANGE;
-    // }
-    // else if(encoder->sw_state == 0x0000 && encoder->sw_pressed){
-    //     encoder->sw_pressed = false;
-    //     status += RE_SW_CHANGE;
-    // }
-    // if(~sw_state & encoder->pin_SW){
-    //     if(!encoder->sw_pressed){
-    //         encoder->sw_count++;
-    //     }
-    // }
-    // else if(encoder->sw_pressed){
-    //     encoder->sw_count++;
-    // }
-    // if(encoder->sw_count == SW_PUSH_THRESHOLD){
-    //     encoder->sw_pressed = !encoder->sw_pressed;
-    //     encoder->sw_count = 0;
-    //     status += RE_SW_CHANGE;
-    // }
     uint16_t state = (uint16_t)(LL_GPIO_ReadInputPort(encoder->port_AB) & RE_PIN_MASK);
     if(encoder->old_state == state){
         return status;
     }
+    bool cw;
     if(((state >> 1) & 1) ^ (encoder->old_state >> 10)){
         encoder->raw++;
-        encoder->dir = ENCODER_DIR_CW;
+        cw = true;
     }
     else{
         encoder->raw--;
-        encoder->dir = ENCODER_DIR_CCW;
+        cw = false;
     }
     if(encoder->pos != encoder->raw / 4){
-        status += RE_POS_CHANGE;
+        encoder->pos = encoder->raw / 4;
+        if(cw){
+            status += RE_CW;
+        }
+        else{
+            status += RE_CCW;
+        }
     }
-    encoder->pos = encoder->raw / 4;
+    // printf("raw: %d\npos: %d\n", encoder->raw, encoder->pos);
     encoder->old_state = state;
     return status;
 }
-
-// int input_update_mode(omp_mode *mode, uint8_t val){
-//     switch(*mode){
-//         case MODE_LED_DISPLAY:
-//             break;
-//         case MODE_LED_PWM:
-//             break;
-//         default:
-//             break;
-//     }
-// }

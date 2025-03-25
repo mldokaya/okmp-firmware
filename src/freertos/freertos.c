@@ -33,7 +33,7 @@ void freertos_init(){
   // If freeRTOS is used, IRQ priority is limit by max syscall ( smaller is higher )
     NVIC_SetPriority(OTG_FS_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
 
-    led_queue_id = osMessageQueueNew(30, sizeof(encoder_event), NULL);
+    led_queue_id = osMessageQueueNew(30, sizeof(input_action), NULL);
     display_queue_id = osMessageQueueNew(30, sizeof(display_event), NULL);
 
     defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, NULL);

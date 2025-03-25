@@ -6,6 +6,8 @@
 #include "printf.h"
 #include "gpio.h"
 #include "modes.h"
+#include "display.h"
+#include "led.h"
 
 #define N_ROWS 4
 #define N_COLS 4
@@ -21,8 +23,10 @@
 
 typedef enum encoder_status{
     RE_NO_CHANGE,
-    RE_SW_CHANGE,
-    RE_POS_CHANGE
+    RE_SW_PRESSED,
+    RE_POS_CHANGE,
+    RE_CW = 4,
+    RE_CCW = 8
 }encoder_status;
 
 typedef enum encoder_dir{
@@ -52,7 +56,9 @@ typedef struct rotary_encoder{
     encoder_dir dir;
     uint8_t sw_state;
     bool sw_pressed;
-    omp_mode mode;
+    struct gpio_pin pin_a;
+    struct gpio_pin pin_b;
+    struct gpio_pin pin_sw;
     GPIO_TypeDef *port_AB;
     GPIO_TypeDef *port_SW;
     unsigned long pin_A;
@@ -65,6 +71,5 @@ void task_input_update(void *argument);
 void input_usb_update(Key *keys, struct key_report *report);
 int input_update_keys(Key *keys);
 int input_update_encoder(rotary_encoder *re);
-int input_update_mode(omp_mode *mode, uint8_t val);
 
 #endif

@@ -3,26 +3,25 @@
 
 #include <stdint.h>
 
-typedef enum omp_mode{
+typedef enum okmp_mode{
     MODE_LED_DISPLAY,
     MODE_LED_PWM,
-    N_OKMP_MODES,
-    MODE_WAKEUP // Special mode for telling the screen to turn back on, probably temporary
-}omp_mode;
+    N_OKMP_MODES
+}okmp_mode;
 
-typedef enum encoder_action{
+typedef enum input_action{
     ENCODER_SW_PRESSED,
     ENCODER_CW,
     ENCODER_CCW
-}encoder_action;
+}input_action;
 
 typedef struct encoder_event{
-    encoder_action action;
-    omp_mode mode;
+    input_action action;
+    okmp_mode mode;
 }encoder_event;
 
 typedef struct{
-    omp_mode mode;
+    okmp_mode mode;
     uint8_t val;
 }display_event;
 
