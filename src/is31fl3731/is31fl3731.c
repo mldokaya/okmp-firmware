@@ -190,7 +190,7 @@ int issi_set_pwm_group(struct is31fl3731_dev *issi, uint8_t frame, uint8_t *x, u
 }
 
 int issi_set_pwm_all(struct is31fl3731_dev *issi, uint8_t frame, uint8_t *x, uint8_t *y, uint8_t val, bool update){
-    ASSERT(issi && ISSI_IS_VALID_FRAME(frame) && x && y && val);
+    ASSERT(issi && ISSI_IS_VALID_FRAME(frame) && x && y);
     if(!issi || !x || !y){
         return ISSI_ERROR_INVALID_PARAM;
     }
