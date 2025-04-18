@@ -6,13 +6,15 @@
 typedef enum okmp_mode{
     MODE_LED_DISPLAY,
     MODE_LED_PWM,
+    MODE_VOL,
     N_OKMP_MODES
 }okmp_mode;
 
 typedef enum input_action{
     ENCODER_SW_PRESSED,
     ENCODER_CW,
-    ENCODER_CCW
+    ENCODER_CCW,
+    ENCODER_NONE
 }input_action;
 
 typedef struct encoder_event{

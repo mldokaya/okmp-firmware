@@ -35,6 +35,12 @@ typedef enum encoder_dir{
     ENCODER_DIR_CW
 }encoder_dir;
 
+typedef enum vol_change{
+    VOL_NO_CHANGE,
+    VOL_UP,
+    VOL_DOWN
+}vol_change;
+
 typedef struct key{
     uint8_t keycode;
     uint8_t bitmap_pos;

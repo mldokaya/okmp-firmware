@@ -31,7 +31,7 @@ void input_init(Key *keys, struct key_report *report, rotary_encoder *re, const 
         report->report[i] = 0;
     }
     report->modifier = &(report->report[0]);
-    report->bitmap = &(report->report[1]);
+    report->bitmap = &(report->report[2]);
     // Initialize the key matrix
     if(keycodes == NULL){
         keycodes = DEFAULT_KEYCODES;
@@ -56,8 +56,7 @@ void input_init(Key *keys, struct key_report *report, rotary_encoder *re, const 
     re->dir = ENCODER_DIR_NONE;
 }
 
-uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen)
-{
+uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen){
   // TODO not Implemented
   (void) instance;
   (void) report_id;
@@ -73,8 +72,7 @@ void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint16_
 }
 
 
-void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
-{
+void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize){
   (void) instance;
 }
 
@@ -92,16 +90,13 @@ void task_usb_update(void *argument){
 }
 
 void task_input_update(void *argument){
-    osMessageQueueId_t *id = (osMessageQueueId_t *)argument;
     rotary_encoder encoder;
     Key keys[N_KEYS];
     struct key_report report;
     input_init(keys, &report, &encoder, NULL);
-    encoder_event event;
-    event.mode = 0;
     int timeout = 0;
     bool active = true;
-    okmp_mode mode = 0;
+    okmp_mode mode = MODE_VOL;
     input_action action;
     while(1){
         if(input_update_keys(keys)){
@@ -112,7 +107,7 @@ void task_input_update(void *argument){
         encoder_status status = update_encoder(&encoder);
         if(status){
             if(!active){
-                display_event d_event = {.mode = event.mode, .val = 0};
+                display_event d_event = {.mode = mode, .val = 0};
                 osMessageQueuePut(display_queue_id, (void *)&d_event, 0, 0);
                 active = true;
             }   
@@ -128,7 +123,32 @@ void task_input_update(void *argument){
                 else if(status & RE_CCW){
                     action = ENCODER_CCW;
                 }
-                osMessageQueuePut(*id, (void *)&action, 0, 0);
+                switch(mode){
+                    case MODE_LED_DISPLAY:
+                    case MODE_LED_PWM:
+                        osMessageQueuePut(led_queue_id, (void *)&action, 0, 0);
+                        break;
+                    case MODE_VOL:
+                        if(status & RE_CW){
+                            uint16_t volume_up = HID_USAGE_CONSUMER_VOLUME_INCREMENT;
+                            usb_report u_report = {.id = 2, .report = (uint8_t *)&volume_up, .n_bytes = 2};
+                            osMessageQueuePut(usb_queue_id, (void *)&u_report, 0, 0);
+                            uint16_t volume_clear = 0;
+                            u_report.report = (uint8_t *)&volume_clear;
+                            osMessageQueuePut(usb_queue_id, (void *)&u_report, 0, 0);
+                        }
+                        else if(status & RE_CCW){
+                            uint16_t volume_down = HID_USAGE_CONSUMER_VOLUME_DECREMENT;
+                            usb_report u_report = {.id = 2, .report = (uint8_t *)&volume_down, .n_bytes = 2};
+                            osMessageQueuePut(usb_queue_id, (void *)&u_report, 0, 0);
+                            uint16_t volume_clear = 0;
+                            u_report.report = (uint8_t *)&volume_clear;
+                            osMessageQueuePut(usb_queue_id, (void *)&u_report, 0, 0);
+                        }
+                        display_event d_event = {.mode = MODE_VOL};
+                        osMessageQueuePut(display_queue_id, (void *)&d_event, 0, 0);
+                        break;
+                }
             }
             timeout = 0;
         }
@@ -232,7 +252,6 @@ static encoder_status update_encoder(rotary_encoder *encoder){
             status += RE_CCW;
         }
     }
-    // printf("raw: %d\npos: %d\n", encoder->raw, encoder->pos);
     encoder->old_state = state;
     return status;
 }
