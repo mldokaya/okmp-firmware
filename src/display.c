@@ -110,7 +110,7 @@ static uint8_t init_cmds[] = {
 
 static void sh1106_reset();
 static void sh1106_write(struct sh1106_dev *ctx, uint8_t *bytes, const uint8_t n_bytes, bool data);
-static void update_state(struct sh1106_dev *sh1106, display_event *current, display_event *prev);
+static void update_state(struct sh1106_dev *sh1106, display_event *current);
 static void draw(struct sh1106_dev *sh1106, uint8_t *bytes, uint8_t w, uint8_t h, int x, int y);
 
 void display_task(void *argument){
@@ -131,14 +131,13 @@ void display_task(void *argument){
     sh1106_update_region(&sh1106, 0, 0, 128, 64);
 
     display_event d_event;
-    display_event prev = {.mode = MODE_LED_PWM, .val = 0};
     bool active = true;
     while(1){
         osStatus_t status = osMessageQueueGet(*display_queue_id, (void *)&d_event, NULL, DISPLAY_TIMEOUT_MS);
         if(status == osOK){
             if(active){
                 sh1106_clear(&sh1106);
-                update_state(&sh1106, &d_event, &prev);
+                update_state(&sh1106, &d_event);
                 sh1106_update_region(&sh1106, 0, 0, 128, 64);
             }
             else{
@@ -160,7 +159,6 @@ static void sh1106_reset(){
 }
 
 static void sh1106_write(struct sh1106_dev *ctx, uint8_t *bytes, const uint8_t n_bytes, bool data){
-    // osSemaphoreAcquire(spi_sem_id, osWaitForever);
     osThreadFlagsWait(0x1, osFlagsWaitAny, osWaitForever);
     if(data){
         LL_GPIO_SetOutputPin(ctx->a0.port, ctx->a0.pin);
@@ -170,7 +168,6 @@ static void sh1106_write(struct sh1106_dev *ctx, uint8_t *bytes, const uint8_t n
         LL_GPIO_ResetOutputPin(ctx->a0.port, ctx->a0.pin);
         spi_transmit(bytes, n_bytes);
         osThreadFlagsSet(spi_thread_id, 0x1);
-        // osSemaphoreRelease(spi_sem_id);
     }
 }
 
@@ -196,7 +193,7 @@ static void draw(struct sh1106_dev *sh1106, uint8_t *bytes, uint8_t w, uint8_t h
     }
 }
 
-static void update_state(struct sh1106_dev *sh1106, display_event *current, display_event *prev){
+static void update_state(struct sh1106_dev *sh1106, display_event *current){
     sh1106_clear(sh1106);
     switch(current->mode){
         case MODE_LED_DISPLAY:
@@ -224,6 +221,4 @@ static void update_state(struct sh1106_dev *sh1106, display_event *current, disp
         default:
             break;
     }
-    prev->mode = current->mode;
-    prev->val = current->val;
 }
