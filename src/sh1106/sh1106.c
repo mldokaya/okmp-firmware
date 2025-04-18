@@ -9,7 +9,7 @@ int sh1106_init(struct sh1106_dev *sh1106){
     return SH1106_OK;
 }
 
-int sh1106_send_data(struct sh1106_dev *sh1106, uint8_t *data, uint8_t n_bytes){
+int sh1106_send_data(struct sh1106_dev *sh1106, uint8_t *data, uint16_t n_bytes){
     ASSERT(sh1106 && data);
     if(!sh1106 || !data){
         return SH1106_ERROR_INVALID_PARAM;
