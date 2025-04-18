@@ -4,8 +4,6 @@
 
 #define TIMEOUT_MS 5000
 
-static encoder_status update_encoder(rotary_encoder *encoder);
-
 const unsigned long col_pins[N_COLS] = {COL0_Pin, COL1_Pin, COL2_Pin, COL3_Pin};
 
 const uint8_t DEFAULT_KEYCODES[N_KEYS] = {
@@ -55,6 +53,7 @@ void input_init(Key *keys, struct key_report *report, rotary_encoder *re, const 
     re->pin_A = RE_A_Pin;
     re->pin_B = RE_B_Pin;
     re->pin_SW = RE_SW_Pin;
+    re->dir = ENCODER_DIR_NONE;
 }
 
 uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen)
@@ -213,23 +212,23 @@ static encoder_status update_encoder(rotary_encoder *encoder){
     }
     uint16_t state = (uint16_t)(LL_GPIO_ReadInputPort(encoder->port_AB) & RE_PIN_MASK);
     if(encoder->old_state == state){
+        encoder->dir = ENCODER_DIR_NONE;
         return status;
     }
-    bool cw;
     if(((state >> 1) & 1) ^ (encoder->old_state >> 10)){
         encoder->raw++;
-        cw = true;
+        encoder->dir = ENCODER_DIR_CW;
     }
     else{
         encoder->raw--;
-        cw = false;
+        encoder->dir = ENCODER_DIR_CCW;
     }
     if(encoder->pos != encoder->raw / 4){
         encoder->pos = encoder->raw / 4;
-        if(cw){
+        if(encoder->dir == ENCODER_DIR_CW){
             status += RE_CW;
         }
-        else{
+        else if(encoder->dir == ENCODER_DIR_CCW){
             status += RE_CCW;
         }
     }

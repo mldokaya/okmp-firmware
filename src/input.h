@@ -24,12 +24,13 @@
 typedef enum encoder_status{
     RE_NO_CHANGE,
     RE_SW_PRESSED,
-    RE_POS_CHANGE,
+    RE_STOPPED,
     RE_CW = 4,
     RE_CCW = 8
 }encoder_status;
 
 typedef enum encoder_dir{
+    ENCODER_DIR_NONE,
     ENCODER_DIR_CCW,
     ENCODER_DIR_CW
 }encoder_dir;
