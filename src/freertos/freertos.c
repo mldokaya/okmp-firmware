@@ -3,7 +3,7 @@
 
 const osThreadAttr_t output_task_attributes = {
     .name = "Output_Task",
-    .stack_size = 128 * 24,
+    .stack_size = 2000,
     .priority = (osPriority_t) osPriorityNormal
 };
 
@@ -12,10 +12,12 @@ osThreadId_t defaultTaskHandle;
 osThreadId_t led_task_id;
 osThreadId_t input_task_id;
 osThreadId_t display_task_id;
+osThreadId_t usb_task_id;
 
 // Queue IDs
 osMessageQueueId_t led_queue_id;
 osMessageQueueId_t display_queue_id;
+osMessageQueueId_t usb_queue_id;
 
 void StartDefaultTask(void *argument){
     (void)argument;
@@ -35,9 +37,11 @@ void freertos_init(){
 
     led_queue_id = osMessageQueueNew(30, sizeof(input_action), NULL);
     display_queue_id = osMessageQueueNew(30, sizeof(display_event), NULL);
+    usb_queue_id = osMessageQueueNew(30, sizeof(usb_report), NULL);
 
     defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, NULL);
-    input_task_id = osThreadNew(task_input_update, (void *)&led_queue_id, NULL);
+    input_task_id = osThreadNew(task_input_update, (void *)&led_queue_id, &output_task_attributes);
     led_task_id = osThreadNew(led_task, NULL, NULL);
     display_task_id = osThreadNew(display_task, (void *)&display_queue_id, &output_task_attributes);
+    usb_task_id = osThreadNew(task_usb_update, NULL, NULL);
 }

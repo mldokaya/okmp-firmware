@@ -23,6 +23,10 @@ const uint8_t DEFAULT_KEYCODES[N_KEYS] = {
     // 0x2C, 0x62, 0x63, 0x57
 };
 
+osThreadId_t usb_thread_id;
+
+static encoder_status update_encoder(rotary_encoder *encoder);
+
 void input_init(Key *keys, struct key_report *report, rotary_encoder *re, const uint8_t *keycodes){
     // Initialize the key report
     for(int i = 0; i < N_KEYS; i++){
@@ -65,13 +69,28 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
   return 0;
 }
 
+void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint16_t len){
+    osThreadFlagsSet(usb_thread_id, 0x1);
+}
+
 
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
   (void) instance;
 }
 
-
+void task_usb_update(void *argument){
+    usb_report report;
+    usb_thread_id = osThreadGetId();
+    osThreadFlagsSet(usb_thread_id, 0x1);
+    while(1){
+        osStatus_t status = osMessageQueueGet(usb_queue_id, (void *)&report, NULL, osWaitForever);
+        if(status == osOK){
+            osThreadFlagsWait(0x1, osFlagsWaitAny, osWaitForever);
+            tud_hid_report(report.id, report.report, report.n_bytes);
+        }
+    }
+}
 
 void task_input_update(void *argument){
     osMessageQueueId_t *id = (osMessageQueueId_t *)argument;
@@ -88,7 +107,8 @@ void task_input_update(void *argument){
     while(1){
         if(input_update_keys(keys)){
             input_usb_update(keys, &report);
-            tud_hid_report(0, &report.report, sizeof(report.report));
+            usb_report usb = {.id = 0, .report = report.report, .n_bytes = sizeof(report.report)};
+            osMessageQueuePut(usb_queue_id, (void *)&usb, 0, 0);
         }
         encoder_status status = update_encoder(&encoder);
         if(status){

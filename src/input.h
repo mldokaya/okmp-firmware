@@ -66,7 +66,14 @@ typedef struct rotary_encoder{
     unsigned long pin_SW;
 }rotary_encoder;
 
+typedef struct usb_report{
+    uint8_t id;
+    uint8_t *report;
+    uint8_t n_bytes;
+}usb_report;
+
 void input_init(Key *keys, struct key_report *report, rotary_encoder *re, const uint8_t *keycodes);
+void task_usb_update(void *argument);
 void task_input_update(void *argument);
 void input_usb_update(Key *keys, struct key_report *report);
 int input_update_keys(Key *keys);

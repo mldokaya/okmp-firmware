@@ -16,10 +16,12 @@
 extern osThreadId_t led_task_id;
 extern osThreadId_t input_task_id;
 extern osThreadId_t display_task_id;
+extern osThreadId_t usb_task_id;
 
 // Queue IDs
 extern osMessageQueueId_t led_queue_id;
 extern osMessageQueueId_t display_queue_id;
+extern osMessageQueueId_t usb_queue_id;
 
 void freertos_init();
 
