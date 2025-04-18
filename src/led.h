@@ -23,5 +23,6 @@ typedef struct led_state{
 }led_state;
 
 void led_task(void *argument);
+int led_init(struct is31fl3731_dev *issi, uint8_t *led_x, uint8_t *led_y);
 
 #endif

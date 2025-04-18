@@ -20,12 +20,7 @@ void led_task(void *argument){
     uint8_t led_y[16] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
     issi.write_single = issi_write;
     issi.write_buf = issi_write_buf;
-    issi_set_function(&issi, ISSI_FUNC_SHUTDOWN, ISSI_NORMAL, true);
-    issi_set_led_all(&issi, ISSI_FRAME1, led_x, led_y, false, false);
-    issi_set_blink_all(&issi, ISSI_FRAME1, led_x, led_y, true, false);
-    issi_set_pwm_all(&issi, ISSI_FRAME1, led_x, led_y, 64, true);
-    issi_set_function(&issi, ISSI_FUNC_DISPLAY, ISSI_DISPLAY_IC_FRAME1 | ISSI_DISPLAY_BLINK_DISABLE | 2, true);
-    osMessageQueuePut(display_queue_id, (void *)&d_event, (int)NULL, portMAX_DELAY);
+    led_init(&issi, led_x, led_y);
     while(1){
         if(osMessageQueueGet(led_queue_id, (void *)&action, NULL, portMAX_DELAY) == osOK){
             if(action == ENCODER_SW_PRESSED){
@@ -77,4 +72,14 @@ void led_task(void *argument){
             osMessageQueuePut(display_queue_id, (void *)&d_event, (int)NULL, portMAX_DELAY);
         }
     }
+}
+
+int led_init(struct is31fl3731_dev *issi, uint8_t *led_x, uint8_t *led_y){
+    display_event d_event = {.mode = MODE_LED_DISPLAY, .val = LED_DEFAULT_DISPLAY};
+    issi_set_function(issi, ISSI_FUNC_SHUTDOWN, ISSI_NORMAL, true);
+    issi_set_led_all(issi, ISSI_FRAME1, led_x, led_y, false, false);
+    issi_set_blink_all(issi, ISSI_FRAME1, led_x, led_y, true, false);
+    issi_set_pwm_all(issi, ISSI_FRAME1, led_x, led_y, 64, true);
+    issi_set_function(issi, ISSI_FUNC_DISPLAY, ISSI_DISPLAY_IC_FRAME1 | ISSI_DISPLAY_BLINK_DISABLE | 2, true);
+    osMessageQueuePut(display_queue_id, (void *)&d_event, (int)NULL, portMAX_DELAY);
 }
